@@ -1,0 +1,15 @@
+{
+  "images" : [
+    {
+      "filename" : "openmoji-1F9C8.svg",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  },
+  "properties" : {
+    "preserves-vector-representation" : true
+  }
+}

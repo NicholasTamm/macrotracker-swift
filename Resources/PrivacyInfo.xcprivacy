@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- This app collects no data (see PRIVACY.md). It does not track the
+	     user, serves no ads, and bundles no analytics or crash-reporting SDK
+	     (crash diagnostics come from first-party MetricKit only). -->
+	<key>NSPrivacyTracking</key>
+	<false/>
+
+	<!-- Required-reason API declarations. Only UserDefaults is used
+	     (@AppStorage settings, HealthKit sync anchors, notification
+	     settings, seed-import flag) — reason CA92.1: access to read and
+	     write information persisted in user defaults. -->
+	<key>NSPrivacyAccessedAPITypes</key>
+	<array>
+		<dict>
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<string>CA92.1</string>
+			</array>
+		</dict>
+	</array>
+
+	<!-- No collected data types: everything the app records (food log,
+	     weigh-ins, measurements, photos, habits) stays in the on-device
+	     SwiftData store. HealthKit data never leaves the device; Open Food
+	     Facts lookups send only the anonymous query/barcode to a public
+	     food database. -->
+	<key>NSPrivacyCollectedDataTypes</key>
+	<array/>
+</dict>
+</plist>

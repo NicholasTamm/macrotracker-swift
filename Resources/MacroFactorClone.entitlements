@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- HealthKit (issue #9): weight + steps sync, weigh-in write-back. -->
+	<key>com.apple.developer.healthkit</key>
+	<true/>
+	<!-- Shared container for widgets + watch (issue #10). Must be enabled
+	     on the iOS app target, the WidgetKit extension, and the watchOS app. -->
+	<key>com.apple.security.application-groups</key>
+	<array>
+		<string>group.com.macrofactor.clone</string>
+	</array>
+</dict>
+</plist>

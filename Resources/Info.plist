@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Deep links: mfclone://dashboard, foodlog, quicklog, strategy, more,
+	     settings, weighin, addfood — handled by MFRouter (AppShell). -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>mfclone</string>
+			</array>
+		</dict>
+	</array>
+
+	<!-- Branded launch screen (issue #12): warm near-black background
+	     (MFColor.background) with the centered macro-ring launch mark.
+	     Assets: LaunchBackground.colorset + LaunchLogo.imageset. -->
+	<key>UILaunchScreen</key>
+	<dict>
+		<key>UIColorName</key>
+		<string>LaunchBackground</string>
+		<key>UIImageName</key>
+		<string>LaunchLogo</string>
+	</dict>
+
+	<!-- HealthKit (issue #9). Exact strings from the #9 worker's spec. -->
+	<key>NSHealthShareUsageDescription</key>
+	<string>Sync your weight and step history from Apple Health so your trends and coaching stay up to date, even on days you don't open the app.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>Save weigh-ins you log here to Apple Health so your records stay in sync.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>healthkit</string>
+	</array>
+
+	<!-- Capture (issue #5). Exact strings from the #5 worker's spec. -->
+	<key>NSCameraUsageDescription</key>
+	<string>Scan barcodes, nutrition labels, meals, and cookbook pages to log food faster.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Record your spoken meal descriptions for voice logging.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Turn your spoken meal descriptions into text for logging.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Pick meal and cookbook photos from your library.</string>
+
+	<!-- No non-exempt encryption (no custom crypto anywhere). -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+</dict>
+</plist>

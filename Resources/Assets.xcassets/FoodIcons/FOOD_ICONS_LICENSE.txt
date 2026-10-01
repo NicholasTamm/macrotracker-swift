@@ -1,0 +1,4 @@
+Food icons: OpenMoji (https://openmoji.org), licensed CC BY-SA 4.0
+(https://creativecommons.org/licenses/by-sa/4.0/).
+Attribution: "Food icons by OpenMoji (https://openmoji.org) — CC BY-SA 4.0".
+Source SVGs fetched from the official OpenMoji GitHub mirror via jsDelivr.
