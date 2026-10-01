@@ -12,7 +12,7 @@ public protocol HabitRepository {
     func updateHabit(_ habit: Habit) throws
     func deleteHabit(_ habit: Habit) throws
     @discardableResult
-    func logCompletion(habit: Habit, dayStart: Date, value: Double = 1, note: String? = nil) throws -> HabitCompletion
+    func logCompletion(habit: Habit, dayStart: Date, value: Double, note: String?) throws -> HabitCompletion
     func completions(habit: Habit, from: Date, to: Date) throws -> [HabitCompletion]
     func deleteCompletion(_ completion: HabitCompletion) throws
     /// Consecutive completed log days ending today (or yesterday, so a
@@ -20,6 +20,18 @@ public protocol HabitRepository {
     func currentStreak(habit: Habit) throws -> Int
     /// Completed days in the trailing 7-day window (for weekly targets).
     func completionsThisWeek(habit: Habit) throws -> Int
+}
+
+// MARK: - Defaulted convenience overloads
+// Protocol requirements can't carry default arguments, so the defaults live
+// here and forward to the requirement.
+
+@MainActor
+extension HabitRepository {
+    @discardableResult
+    func logCompletion(habit: Habit, dayStart: Date, value: Double = 1, note: String? = nil) throws -> HabitCompletion {
+        try logCompletion(habit: habit, dayStart: dayStart, value: value, note: note)
+    }
 }
 
 @MainActor

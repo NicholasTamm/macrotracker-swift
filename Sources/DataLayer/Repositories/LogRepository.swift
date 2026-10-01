@@ -13,10 +13,10 @@ public protocol LogRepository {
     func logFood(
         _ food: FoodItem,
         grams: Double,
-        mealSlot: MealSlot = .other,
-        timestamp: Date = Date(),
-        note: String? = nil,
-        source: EntrySource = .manualSearch
+        mealSlot: MealSlot,
+        timestamp: Date,
+        note: String?,
+        source: EntrySource
     ) throws -> LogEntry
     /// Quick-add: calories/macros without a food record.
     @discardableResult
@@ -25,9 +25,9 @@ public protocol LogRepository {
         proteinGrams: Double,
         fatGrams: Double,
         carbsGrams: Double,
-        mealSlot: MealSlot = .other,
-        timestamp: Date = Date(),
-        note: String? = nil
+        mealSlot: MealSlot,
+        timestamp: Date,
+        note: String?
     ) throws -> LogEntry
     func updateEntry(
         _ entry: LogEntry,
@@ -57,6 +57,53 @@ public protocol LogRepository {
     /// Per-day intake rollups for the expenditure estimator / check-in.
     /// `isComplete` comes from LogDay.isMarkedComplete.
     func intakeDays(from: Date, to: Date) throws -> [IntakeDay]
+}
+
+// MARK: - Defaulted convenience overloads
+// Protocol requirements can't carry default arguments, so the defaults live
+// here and forward to the requirement.
+
+@MainActor
+extension LogRepository {
+    @discardableResult
+    func logFood(
+        _ food: FoodItem,
+        grams: Double,
+        mealSlot: MealSlot = .other,
+        timestamp: Date = Date(),
+        note: String? = nil,
+        source: EntrySource = .manualSearch
+    ) throws -> LogEntry {
+        try logFood(
+            food,
+            grams: grams,
+            mealSlot: mealSlot,
+            timestamp: timestamp,
+            note: note,
+            source: source
+        )
+    }
+
+    @discardableResult
+    func quickAdd(
+        calories: Double,
+        proteinGrams: Double,
+        fatGrams: Double,
+        carbsGrams: Double,
+        mealSlot: MealSlot = .other,
+        timestamp: Date = Date(),
+        note: String? = nil
+    ) throws -> LogEntry {
+        try quickAdd(
+            calories: calories,
+            proteinGrams: proteinGrams,
+            fatGrams: fatGrams,
+            carbsGrams: carbsGrams,
+            mealSlot: mealSlot,
+            timestamp: timestamp,
+            note: note
+        )
+    }
 }
 
 // MARK: - SwiftData implementation

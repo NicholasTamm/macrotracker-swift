@@ -15,7 +15,7 @@ public protocol ProgramRepository {
     // MARK: Nutrient targets
     func nutrientTargets() throws -> [NutrientTarget]
     func target(for key: NutrientKey) throws -> NutrientTarget?
-    func setTarget(_ key: NutrientKey, value: Double, isCustom: Bool = true) throws
+    func setTarget(_ key: NutrientKey, value: Double, isCustom: Bool) throws
     func resetTargetsToDefaults() throws
 
     // MARK: Day overrides
@@ -42,6 +42,17 @@ public protocol ProgramRepository {
     /// Deletes ALL user data (settings reset to defaults, everything else
     /// purged). Used by "Erase all data" in Settings.
     func resetAllData() throws
+}
+
+// MARK: - Defaulted convenience overloads
+// Protocol requirements can't carry default arguments, so the defaults live
+// here and forward to the requirement.
+
+@MainActor
+extension ProgramRepository {
+    func setTarget(_ key: NutrientKey, value: Double, isCustom: Bool = true) throws {
+        try setTarget(key, value: value, isCustom: isCustom)
+    }
 }
 
 @MainActor

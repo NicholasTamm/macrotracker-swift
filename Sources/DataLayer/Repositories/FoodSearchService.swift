@@ -38,7 +38,7 @@ public struct FoodSearchResult: Identifiable, Equatable, Sendable {
 public protocol FoodSearchService {
     /// Searches local foods, then cached OFF results, then live OFF search.
     /// Set `includeNetwork = false` for fully offline behavior.
-    func search(query: String, includeNetwork: Bool = true) async throws -> [FoodSearchResult]
+    func search(query: String, includeNetwork: Bool) async throws -> [FoodSearchResult]
     /// Barcode lookup: local foods → OFF cache → live OFF lookup.
     /// Returns nil when nothing is found anywhere.
     func lookupBarcode(_ code: String) async throws -> FoodSearchResult?
@@ -49,6 +49,17 @@ public protocol FoodSearchService {
     func importOFFProduct(_ product: OFFProduct) throws -> FoodItem
     /// Removes cache entries older than the TTL (maintenance).
     func pruneExpiredCache() throws
+}
+
+// MARK: - Defaulted convenience overloads
+// Protocol requirements can't carry default arguments, so the defaults live
+// here and forward to the requirement.
+
+@MainActor
+extension FoodSearchService {
+    func search(query: String, includeNetwork: Bool = true) async throws -> [FoodSearchResult] {
+        try await search(query: query, includeNetwork: includeNetwork)
+    }
 }
 
 // MARK: - Implementation

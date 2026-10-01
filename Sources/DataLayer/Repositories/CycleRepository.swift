@@ -7,9 +7,21 @@ import SwiftData
 @MainActor
 public protocol CycleRepository {
     @discardableResult
-    func logEntry(dayStart: Date, flow: FlowIntensity, notes: String? = nil) throws -> CycleEntry
+    func logEntry(dayStart: Date, flow: FlowIntensity, notes: String?) throws -> CycleEntry
     func entries(from: Date, to: Date) throws -> [CycleEntry]
     func deleteEntry(_ entry: CycleEntry) throws
+}
+
+// MARK: - Defaulted convenience overloads
+// Protocol requirements can't carry default arguments, so the defaults live
+// here and forward to the requirement.
+
+@MainActor
+extension CycleRepository {
+    @discardableResult
+    func logEntry(dayStart: Date, flow: FlowIntensity, notes: String? = nil) throws -> CycleEntry {
+        try logEntry(dayStart: dayStart, flow: flow, notes: notes)
+    }
 }
 
 @MainActor

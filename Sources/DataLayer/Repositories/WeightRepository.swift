@@ -8,12 +8,24 @@ import CoachingEngine
 @MainActor
 public protocol WeightRepository {
     @discardableResult
-    func logWeight(_ weightKg: Double, timestamp: Date = Date(), note: String? = nil, source: WeightSource = .manual) throws -> WeightEntry
+    func logWeight(_ weightKg: Double, timestamp: Date, note: String?, source: WeightSource) throws -> WeightEntry
     func weights(from: Date, to: Date) throws -> [WeightEntry]
     func latestWeight() throws -> WeightEntry?
     func deleteWeight(_ entry: WeightEntry) throws
     /// Samples for the coaching engine's weight-trend analysis.
     func samples(from: Date, to: Date) throws -> [WeightSample]
+}
+
+// MARK: - Defaulted convenience overloads
+// Protocol requirements can't carry default arguments, so the defaults live
+// here and forward to the requirement.
+
+@MainActor
+extension WeightRepository {
+    @discardableResult
+    func logWeight(_ weightKg: Double, timestamp: Date = Date(), note: String? = nil, source: WeightSource = .manual) throws -> WeightEntry {
+        try logWeight(weightKg, timestamp: timestamp, note: note, source: source)
+    }
 }
 
 @MainActor

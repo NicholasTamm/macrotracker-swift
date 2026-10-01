@@ -8,10 +8,21 @@ import CoachingEngine
 @MainActor
 public protocol StepRepository {
     /// Upserts the step count for a log day (HealthKit re-deliveries update).
-    func setSteps(_ steps: Double, for dayStart: Date, source: StepSource = .healthKit) throws
+    func setSteps(_ steps: Double, for dayStart: Date, source: StepSource) throws
     func steps(from: Date, to: Date) throws -> [StepEntry]
     /// Day rollups for the coaching engine's step modifier.
     func stepDays(from: Date, to: Date) throws -> [StepDay]
+}
+
+// MARK: - Defaulted convenience overloads
+// Protocol requirements can't carry default arguments, so the defaults live
+// here and forward to the requirement.
+
+@MainActor
+extension StepRepository {
+    func setSteps(_ steps: Double, for dayStart: Date, source: StepSource = .healthKit) throws {
+        try setSteps(steps, for: dayStart, source: source)
+    }
 }
 
 @MainActor

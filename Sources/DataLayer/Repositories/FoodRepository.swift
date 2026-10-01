@@ -19,12 +19,12 @@ public protocol FoodRepository {
     @discardableResult
     func saveFood(
         name: String,
-        brand: String = "",
-        barcode: String? = nil,
-        servingDescription: String = "",
-        servingSizeGrams: Double = 100,
-        nutrientsPer100g: [NutrientKey: Double] = [:],
-        source: FoodSource = .custom
+        brand: String,
+        barcode: String?,
+        servingDescription: String,
+        servingSizeGrams: Double,
+        nutrientsPer100g: [NutrientKey: Double],
+        source: FoodSource
     ) throws -> FoodItem
     func updateFood(_ food: FoodItem) throws
     /// Soft-delete: archived foods stay out of search but keep history intact.
@@ -38,15 +38,58 @@ public protocol FoodRepository {
     @discardableResult
     func createRecipe(
         name: String,
-        servingDescription: String = "",
-        servingSizeGrams: Double = 100,
-        ingredients: [(food: FoodItem, grams: Double)] = []
+        servingDescription: String,
+        servingSizeGrams: Double,
+        ingredients: [(food: FoodItem, grams: Double)]
     ) throws -> FoodItem
     func addIngredient(to recipe: FoodItem, food: FoodItem, grams: Double) throws
     func updateIngredient(_ ingredient: RecipeIngredient, grams: Double) throws
     func removeIngredient(_ ingredient: RecipeIngredient) throws
     /// Recomputes the recipe's per-100-g nutrients from its ingredients.
     func recomputeRecipeNutrients(_ recipe: FoodItem) throws
+}
+
+// MARK: - Defaulted convenience overloads
+// Protocol requirements can't carry default arguments, so the defaults live
+// here and forward to the requirement.
+
+@MainActor
+extension FoodRepository {
+    @discardableResult
+    func saveFood(
+        name: String,
+        brand: String = "",
+        barcode: String? = nil,
+        servingDescription: String = "",
+        servingSizeGrams: Double = 100,
+        nutrientsPer100g: [NutrientKey: Double] = [:],
+        source: FoodSource = .custom
+    ) throws -> FoodItem {
+        try saveFood(
+            name: name,
+            brand: brand,
+            barcode: barcode,
+            servingDescription: servingDescription,
+            servingSizeGrams: servingSizeGrams,
+            nutrientsPer100g: nutrientsPer100g,
+            source: source
+        )
+    }
+
+    @discardableResult
+    func createRecipe(
+        name: String,
+        servingDescription: String = "",
+        servingSizeGrams: Double = 100,
+        ingredients: [(food: FoodItem, grams: Double)] = []
+    ) throws -> FoodItem {
+        try createRecipe(
+            name: name,
+            servingDescription: servingDescription,
+            servingSizeGrams: servingSizeGrams,
+            ingredients: ingredients
+        )
+    }
 }
 
 // MARK: - SwiftData implementation

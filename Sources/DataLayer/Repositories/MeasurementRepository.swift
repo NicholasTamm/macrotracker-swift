@@ -16,15 +16,41 @@ public protocol MeasurementRepository {
     @discardableResult
     func savePhoto(
         jpegData: Data,
+        thumbnailJPEGData: Data?,
+        takenAt: Date,
+        viewTag: PhotoViewTag,
+        weightKgAtCapture: Double?,
+        note: String?
+    ) throws -> ProgressPhoto
+    func photos(from: Date, to: Date) throws -> [ProgressPhoto]
+    func deletePhoto(_ photo: ProgressPhoto) throws
+    func fileURL(for photo: ProgressPhoto) -> URL
+}
+
+// MARK: - Defaulted convenience overloads
+// Protocol requirements can't carry default arguments, so the defaults live
+// here and forward to the requirement.
+
+@MainActor
+extension MeasurementRepository {
+    @discardableResult
+    func savePhoto(
+        jpegData: Data,
         thumbnailJPEGData: Data? = nil,
         takenAt: Date = Date(),
         viewTag: PhotoViewTag = .other,
         weightKgAtCapture: Double? = nil,
         note: String? = nil
-    ) throws -> ProgressPhoto
-    func photos(from: Date, to: Date) throws -> [ProgressPhoto]
-    func deletePhoto(_ photo: ProgressPhoto) throws
-    func fileURL(for photo: ProgressPhoto) -> URL
+    ) throws -> ProgressPhoto {
+        try savePhoto(
+            jpegData: jpegData,
+            thumbnailJPEGData: thumbnailJPEGData,
+            takenAt: takenAt,
+            viewTag: viewTag,
+            weightKgAtCapture: weightKgAtCapture,
+            note: note
+        )
+    }
 }
 
 @MainActor
