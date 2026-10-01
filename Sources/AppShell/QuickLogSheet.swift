@@ -23,6 +23,7 @@ public struct QuickLogSheet: View {
 
     @Environment(\.dismiss) private var dismiss
     @State private var flowSheet: QuickLogFlowSheet?
+    @State private var logErrorMessage: String?
 
     public init(services: AppServices) {
         self.services = services
@@ -35,6 +36,27 @@ public struct QuickLogSheet: View {
             log: services.store.logs,
             onFoodLogged: { services.noteFoodLogged() }
         )
+    }
+
+    /// Presents the log-failure alert; clears the message on dismiss.
+    private var logErrorBinding: Binding<Bool> {
+        Binding(
+            get: { logErrorMessage != nil },
+            set: { if !$0 { logErrorMessage = nil } }
+        )
+    }
+
+    /// Logs via `work`, crediting the streak and closing the sheet only on
+    /// success. Failures surface an alert instead of a false success.
+    private func logOrAlert(_ work: () throws -> Void) {
+        do {
+            try work()
+            services.noteFoodLogged()
+            flowSheet = nil
+            dismiss()
+        } catch {
+            logErrorMessage = error.localizedDescription
+        }
     }
 
     public var body: some View {
@@ -55,6 +77,11 @@ public struct QuickLogSheet: View {
         .presentationDetents([.medium, .large])
         .sheet(item: $flowSheet) { sheet in
             flowSheetView(for: sheet)
+                .alert("Couldn't log food", isPresented: logErrorBinding) {
+                    Button("OK", role: .cancel) {}
+                } message: {
+                    Text(logErrorMessage ?? "An unexpected error occurred.")
+                }
         }
         .onDisappear {
             // Capture flows log via the repos directly; refresh the
@@ -142,14 +169,13 @@ public struct QuickLogSheet: View {
                 foods: services.store.foods,
                 onSelectFood: { food in
                     // Fast path: log at the food's default serving.
-                    try? services.store.logs.logFood(
-                        food,
-                        grams: food.servingSizeGrams,
-                        source: .manualSearch
-                    )
-                    services.noteFoodLogged()
-                    flowSheet = nil
-                    dismiss()
+                    logOrAlert {
+                        try services.store.logs.logFood(
+                            food,
+                            grams: food.servingSizeGrams,
+                            source: .manualSearch
+                        )
+                    }
                 },
                 onQuickAdd: { replaceFlowSheet(with: .quickAdd) },
                 onCreateCustomFood: { replaceFlowSheet(with: .customFood) },
@@ -157,16 +183,15 @@ public struct QuickLogSheet: View {
             )
         case .quickAdd:
             QuickAddView { calories, protein, fat, carbs, mealSlot in
-                try? services.store.logs.quickAdd(
-                    calories: calories,
-                    proteinGrams: protein,
-                    fatGrams: fat,
-                    carbsGrams: carbs,
-                    mealSlot: mealSlot
-                )
-                services.noteFoodLogged()
-                flowSheet = nil
-                dismiss()
+                logOrAlert {
+                    try services.store.logs.quickAdd(
+                        calories: calories,
+                        proteinGrams: protein,
+                        fatGrams: fat,
+                        carbsGrams: carbs,
+                        mealSlot: mealSlot
+                    )
+                }
             }
         case .customFood:
             CustomFoodEditorView(food: nil, foods: services.store.foods) { _ in

@@ -27,6 +27,13 @@ public enum MacroPlanner {
         bodyWeightKg: Double,
         program: CoachingProgram
     ) -> MacroTargets {
+        // Degenerate input: a zero/negative calorie target carries no macros.
+        // Without this, the protein and fat floors would imply ~1,000 kcal
+        // on a 0 kcal target.
+        guard calories > 0 else {
+            return MacroTargets(calories: max(0, calories), proteinGrams: 0, fatGrams: 0, carbsGrams: 0)
+        }
+
         let proteinGrams = max(0, program.proteinGramsPerKg * bodyWeightKg)
         let proteinKcal = proteinGrams * EnergyConstants.kcalPerGramProtein
         let remainingKcal = max(0, calories - proteinKcal)

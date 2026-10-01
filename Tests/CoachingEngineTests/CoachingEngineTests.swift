@@ -357,6 +357,41 @@ final class CoachingEngineTests: XCTestCase {
 
     // MARK: - Adherence-neutral copy
 
+    func testSlowerThanPlannedReachableForSmallGoalRates() {
+        // Regression: the slower band used `< ±tolerance` as its edge, which
+        // made it unreachable for |goalRate| <= 0.30 — movement toward the
+        // goal was misreported as offTrack.
+        let bulk = WeeklyCheckIn.assess(
+            observedRate: 0.05, goalRate: 0.25, goalType: .bulk, confidence: 0.9
+        )
+        XCTAssertEqual(bulk, .slowerThanPlanned)
+        let cut = WeeklyCheckIn.assess(
+            observedRate: -0.05, goalRate: -0.25, goalType: .cut, confidence: 0.9
+        )
+        XCTAssertEqual(cut, .slowerThanPlanned)
+        // Flat (or movement away) is still offTrack, not slower.
+        XCTAssertEqual(
+            WeeklyCheckIn.assess(observedRate: 0.0, goalRate: 0.25, goalType: .bulk, confidence: 0.9),
+            .offTrack
+        )
+        XCTAssertEqual(
+            WeeklyCheckIn.assess(observedRate: 0.0, goalRate: -0.25, goalType: .cut, confidence: 0.9),
+            .offTrack
+        )
+    }
+
+    func testDegenerateCalorieTargetYieldsZeroMacros() {
+        // Regression: targets(calories: 0) returned the protein/fat floors
+        // (implying ~1,000 kcal) on a 0 kcal target.
+        let program = cutProgram()
+        let zero = MacroPlanner.targets(calories: 0, bodyWeightKg: 70, program: program)
+        XCTAssertEqual(zero.calories, 0, accuracy: 1e-9)
+        XCTAssertEqual(zero.proteinGrams, 0, accuracy: 1e-9)
+        XCTAssertEqual(zero.fatGrams, 0, accuracy: 1e-9)
+        XCTAssertEqual(zero.carbsGrams, 0, accuracy: 1e-9)
+        XCTAssertEqual(zero.macroImpliedCalories, 0, accuracy: 1e-9)
+    }
+
     func testCopyIsAdherenceNeutral() {
         let banned = ["bad", "fail", "cheat", "guilt", "shame", "lazy", "disappoint", "punish"]
         var allCopy: [String] = [

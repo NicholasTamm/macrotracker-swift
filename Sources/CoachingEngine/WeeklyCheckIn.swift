@@ -184,7 +184,11 @@ public enum WeeklyCheckIn {
                 return .onTrack
             } else if observedRate < goalRate - tolerance {
                 return .fasterThanPlanned
-            } else if observedRate < -tolerance {
+            } else if observedRate < 0 {
+                // Any movement toward the goal counts as "slower", even when
+                // the goal rate is small enough that no gap exists between the
+                // on-track band and flat. (Previously `< -tolerance`, which
+                // made this branch unreachable for |goalRate| <= 0.30.)
                 return .slowerThanPlanned
             } else {
                 return .offTrack
@@ -194,7 +198,8 @@ public enum WeeklyCheckIn {
                 return .onTrack
             } else if observedRate > goalRate + tolerance {
                 return .fasterThanPlanned
-            } else if observedRate > tolerance {
+            } else if observedRate > 0 {
+                // Symmetric with the cut branch above.
                 return .slowerThanPlanned
             } else {
                 return .offTrack

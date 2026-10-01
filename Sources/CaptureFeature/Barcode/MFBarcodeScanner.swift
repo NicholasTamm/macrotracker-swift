@@ -10,17 +10,40 @@ import AVFoundation
 /// scan with the raw payload string.
 public struct MFBarcodeScannerView: View {
     private let onScan: (String) -> Void
+    @State private var errorMessage: String?
 
     public init(onScan: @escaping (String) -> Void) {
         self.onScan = onScan
     }
 
     public var body: some View {
-        if DataScannerViewController.isSupported {
-            MFDataScannerRepresentable(onScan: onScan)
-        } else {
-            MFAVCaptureBarcodeView(onScan: onScan)
+        ZStack {
+            if DataScannerViewController.isSupported {
+                MFDataScannerRepresentable(onScan: onScan, onError: reportError)
+            } else {
+                MFAVCaptureBarcodeView(onScan: onScan, onError: reportError)
+            }
+            if let errorMessage {
+                VStack {
+                    Spacer()
+                    Text(errorMessage)
+                        .font(.footnote)
+                        .multilineTextAlignment(.center)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
+                        .background(Color.black.opacity(0.78))
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .padding()
+                }
+            }
         }
+    }
+
+    private func reportError(_ message: String) {
+        // Called from representable update/make paths; hop off the view-update
+        // cycle before touching state.
+        DispatchQueue.main.async { errorMessage = message }
     }
 }
 
@@ -28,6 +51,7 @@ public struct MFBarcodeScannerView: View {
 
 private struct MFDataScannerRepresentable: UIViewControllerRepresentable {
     var onScan: (String) -> Void
+    var onError: (String) -> Void
 
     func makeUIViewController(context: Context) -> DataScannerViewController {
         let controller = DataScannerViewController(
@@ -44,20 +68,28 @@ private struct MFDataScannerRepresentable: UIViewControllerRepresentable {
     }
 
     func updateUIViewController(_ controller: DataScannerViewController, context: Context) {
-        guard !context.coordinator.didFire else { return }
-        try? controller.startScanning()
+        guard !context.coordinator.didFire, !context.coordinator.didReportStartError else { return }
+        do {
+            try controller.startScanning()
+        } catch {
+            context.coordinator.didReportStartError = true
+            onError("Couldn't start the barcode scanner. \(error.localizedDescription)")
+        }
     }
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(onScan: onScan)
+        Coordinator(onScan: onScan, onError: onError)
     }
 
     final class Coordinator: NSObject, DataScannerViewControllerDelegate {
         var didFire = false
+        var didReportStartError = false
         private let onScan: (String) -> Void
+        private let onError: (String) -> Void
 
-        init(onScan: @escaping (String) -> Void) {
+        init(onScan: @escaping (String) -> Void, onError: @escaping (String) -> Void) {
             self.onScan = onScan
+            self.onError = onError
         }
 
         func dataScanner(
@@ -87,7 +119,9 @@ private struct MFDataScannerRepresentable: UIViewControllerRepresentable {
         func dataScanner(
             _ dataScanner: DataScannerViewController,
             becameUnavailableWithError error: DataScannerViewController.ScanningUnavailable
-        ) {}
+        ) {
+            onError("Barcode scanning became unavailable. \(error.localizedDescription)")
+        }
     }
 }
 
@@ -97,6 +131,7 @@ private struct MFDataScannerRepresentable: UIViewControllerRepresentable {
 /// support. Same `onScan` contract as the VisionKit path.
 private struct MFAVCaptureBarcodeView: UIViewRepresentable {
     var onScan: (String) -> Void
+    var onError: (String) -> Void
 
     func makeUIView(context: Context) -> MFPreviewView {
         let view = MFPreviewView()
@@ -106,11 +141,17 @@ private struct MFAVCaptureBarcodeView: UIViewRepresentable {
         guard let device = AVCaptureDevice.default(for: .video),
               let input = try? AVCaptureDeviceInput(device: device),
               session.canAddInput(input)
-        else { return view }
+        else {
+            onError("Couldn't access the camera for barcode scanning.")
+            return view
+        }
         session.addInput(input)
 
         let output = AVCaptureMetadataOutput()
-        guard session.canAddOutput(output) else { return view }
+        guard session.canAddOutput(output) else {
+            onError("Couldn't access the camera for barcode scanning.")
+            return view
+        }
         session.addOutput(output)
         output.setMetadataObjectsDelegate(context.coordinator, queue: .main)
         output.metadataObjectTypes = [.ean13, .ean8, .upce, .code128, .code39, .qr]
