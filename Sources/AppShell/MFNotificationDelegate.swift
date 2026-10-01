@@ -36,7 +36,8 @@ public final class MFNotificationDelegate: NSObject, UNUserNotificationCenterDel
             defer { completionHandler() }
             guard let router = self?.router else { return }
             if actionIdentifier == MFNotificationScheduler.quickLogAction {
-                router.handle(url: URL(string: "mfclone://quicklog")!)
+                guard let url = URL(string: "mfclone://quicklog") else { return }
+                router.handle(url: url)
             } else if
                 let link = userInfo[MFNotificationScheduler.deepLinkUserInfoKey] as? String,
                 let url = URL(string: link)
