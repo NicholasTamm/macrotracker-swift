@@ -173,7 +173,7 @@ public enum MFFoodIconMapper {
             }
             .padding()
             .background(MFColor.background)
-            .mfThemed()
+            .tint(MFColor.accent)
         }
     }
     return Demo()

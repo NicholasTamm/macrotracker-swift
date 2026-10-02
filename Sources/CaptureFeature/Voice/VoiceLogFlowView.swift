@@ -415,8 +415,9 @@ public struct VoiceLogFlowView: View {
                             food,
                             grams: candidate.grams,
                             mealSlot: slot,
-                            source: .voice,
-                            note: candidate.match == nil ? "Voice estimate — nutrition not matched" : nil
+                            timestamp: Date(),
+                            note: candidate.match == nil ? "Voice estimate — nutrition not matched" : nil,
+                            source: .voice
                         )
                     }
                     // One user action = one hook fire, even for multi-item
@@ -441,8 +442,11 @@ public struct VoiceLogFlowView: View {
     private func voiceFood(for candidate: VoiceDraftCandidate) throws -> FoodItem {
         try deps.foods.saveFood(
             name: candidate.name,
+            brand: "",
+            barcode: nil,
             servingDescription: "",
             servingSizeGrams: candidate.grams,
+            nutrientsPer100g: [:],
             source: .voiceEstimate
         )
     }

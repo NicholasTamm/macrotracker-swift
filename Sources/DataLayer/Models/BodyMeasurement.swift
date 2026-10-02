@@ -7,7 +7,6 @@ import SwiftData
 
 @Model
 public final class BodyMeasurement {
-    #Index<BodyMeasurement>([\.date])
 
     @Attribute(.unique) public var id: UUID
     public var date: Date

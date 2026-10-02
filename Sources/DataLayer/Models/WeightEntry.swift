@@ -12,7 +12,6 @@ public enum WeightSource: String, Codable, Sendable, CaseIterable {
 
 @Model
 public final class WeightEntry {
-    #Index<WeightEntry>([\.timestamp])
 
     @Attribute(.unique) public var id: UUID
     public var timestamp: Date

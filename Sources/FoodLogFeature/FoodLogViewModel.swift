@@ -79,7 +79,7 @@ public final class FoodLogViewModel {
             isDayComplete = record?.isMarkedComplete ?? false
             dayNote = record?.note
             weekLoggedDays = try loggedDays(inWeekOf: selectedDay)
-            microGoals = try microGoals()
+            microGoals = try loadMicroGoals()
             lastError = nil
         } catch {
             lastError = error.localizedDescription
@@ -113,7 +113,7 @@ public final class FoodLogViewModel {
     }
 
     /// Targets for the summary strip's micronutrient page.
-    private func microGoals() throws -> [(key: NutrientKey, target: Double)] {
+    private func loadMicroGoals() throws -> [(key: NutrientKey, target: Double)] {
         let keys: [NutrientKey] = [.fiber, .sugar, .sodium, .potassium]
         return try keys.map { key in
             let target = try program.target(for: key)?.targetValue ?? 0
@@ -138,7 +138,7 @@ public final class FoodLogViewModel {
     @discardableResult
     public func logFood(_ food: FoodItem, grams: Double, mealSlot: MealSlot, timestamp: Date, note: String?) -> Bool {
         do {
-            try logs.logFood(food, grams: grams, mealSlot: mealSlot, timestamp: timestamp, note: note)
+            try logs.logFood(food, grams: grams, mealSlot: mealSlot, timestamp: timestamp, note: note, source: .manualSearch)
             reload()
             noteFoodLogged(at: timestamp)
             return true
@@ -157,7 +157,8 @@ public final class FoodLogViewModel {
                     grams: item.grams,
                     mealSlot: item.mealSlot,
                     timestamp: timestamp,
-                    note: item.note
+                    note: item.note,
+                    source: .manualSearch
                 )
             }
             reload()

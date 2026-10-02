@@ -11,8 +11,6 @@ import SwiftData
 
 @Model
 public final class OpenFoodFactsCacheEntry {
-    #Index<OpenFoodFactsCacheEntry>([\.queryKey])
-    #Index<OpenFoodFactsCacheEntry>([\.fetchedAt])
 
     @Attribute(.unique) public var id: UUID
     /// Lookup key: "barcode:<code>" or "search:<normalized query>".

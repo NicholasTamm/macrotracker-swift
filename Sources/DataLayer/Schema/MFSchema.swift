@@ -103,7 +103,7 @@ public enum MFModelContainerFactory {
         )
 
         return try ModelContainer(
-            for: MFSchemaV1.self,
+            for: Schema(syncedModels + [OpenFoodFactsCacheEntry.self]),
             migrationPlan: MFSchemaMigrationPlan.self,
             configurations: [syncedConfig, cacheConfig]
         )

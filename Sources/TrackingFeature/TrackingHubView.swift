@@ -311,7 +311,7 @@ struct HubPhotoThumb: View {
         let calendar = Calendar.current
         for day in 0..<28 {
             let date = calendar.date(byAdding: .day, value: -day, to: Date())!
-            try? env.weights.logWeight(82.0 - Double(28 - day) * 0.05, timestamp: date)
+            try? env.weights.logWeight(82.0 - Double(28 - day) * 0.05, timestamp: date, note: nil, source: .manual)
         }
     }) { env in
         TrackingHubView()

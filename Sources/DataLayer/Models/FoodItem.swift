@@ -26,8 +26,6 @@ public enum FoodSource: String, Codable, Sendable, CaseIterable {
 
 @Model
 public final class FoodItem {
-    #Index<FoodItem>([\.name])
-    #Index<FoodItem>([\.barcode])
 
     @Attribute(.unique) public var id: UUID
     public var sourceRaw: String
@@ -235,7 +233,7 @@ public final class RecipeIngredient {
     @Relationship(deleteRule: .nullify)
     public var food: FoodItem?
 
-    @Relationship(deleteRule: .nullify, inverse: \FoodItem.recipeIngredients)
+    @Relationship(deleteRule: .nullify)
     public var recipe: FoodItem?
 
     public init(id: UUID = UUID(), food: FoodItem? = nil, grams: Double, sortOrder: Int = 0) {

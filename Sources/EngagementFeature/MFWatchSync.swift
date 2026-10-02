@@ -185,7 +185,10 @@ public final class MFWatchBridge: NSObject {
                     calories: calories,
                     proteinGrams: protein,
                     fatGrams: fat,
-                    carbsGrams: carbs
+                    carbsGrams: carbs,
+                    mealSlot: .snack,
+                    timestamp: Date(),
+                    note: nil
                 )
                 _ = publisher.publishToday()
             } catch {
@@ -195,7 +198,7 @@ public final class MFWatchBridge: NSObject {
 
         case .weighIn(let weightKg, let date):
             do {
-                try weights.logWeight(weightKg, timestamp: date, source: .manual)
+                try weights.logWeight(weightKg, timestamp: date, note: nil, source: .manual)
                 _ = publisher.publishToday()
             } catch {
                 return nil

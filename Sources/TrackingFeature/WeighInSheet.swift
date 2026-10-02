@@ -116,7 +116,8 @@ public struct WeighInSheet: View {
             let entry = try env.weights.logWeight(
                 unit.toKilograms(value),
                 timestamp: date,
-                note: note.isEmpty ? nil : note
+                note: note.isEmpty ? nil : note,
+                source: .manual
             )
             env.logTodayCompletion(kind: .weighIn)
             // HealthKit write-back (issue #9): AppShell wires this hook to

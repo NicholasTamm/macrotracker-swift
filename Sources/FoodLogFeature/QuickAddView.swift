@@ -104,5 +104,5 @@ public struct QuickAddView: View {
 
 #Preview("Quick add") {
     QuickAddView { _, _, _, _, _ in }
-        .mfThemed()
+        .tint(MFColor.accent)
 }

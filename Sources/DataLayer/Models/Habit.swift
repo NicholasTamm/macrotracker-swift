@@ -56,7 +56,6 @@ public final class Habit {
 
 @Model
 public final class HabitCompletion {
-    #Index<HabitCompletion>([\.dayStart])
 
     @Attribute(.unique) public var id: UUID
     /// Log-day this completion counts toward.
@@ -65,7 +64,7 @@ public final class HabitCompletion {
     public var value: Double
     public var note: String?
 
-    @Relationship(deleteRule: .nullify, inverse: \Habit.completions)
+    @Relationship(deleteRule: .nullify)
     public var habit: Habit?
 
     public init(

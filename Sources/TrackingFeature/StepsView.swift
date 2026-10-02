@@ -200,7 +200,7 @@ public struct StepsView: View {
         let today = MFDates.startOfDay(Date())
         for offset in 0..<14 {
             if let day = calendar.date(byAdding: .day, value: -offset, to: today) {
-                try? env.steps.setSteps(4000 + Double((offset * 7919) % 6000), for: day)
+                try? env.steps.setSteps(4000 + Double((offset * 7919) % 6000), for: day, source: .manual)
             }
         }
     }) { env in

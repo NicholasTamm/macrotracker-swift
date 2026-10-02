@@ -91,12 +91,13 @@ public struct StrategyRootView: View {
 }
 
 #Preview("Strategy") {
-    // Previews run on the main actor; build a real in-memory store like
-    // TrackingFeature's preview support does (no stubs to keep in sync
-    // with the repository protocols).
+    strategyPreview()
+}
+
+private func strategyPreview() -> some View {
     MainActor.assumeIsolated {
         let store = try! DataStore(inMemory: true, seed: false)
-        StrategyRootView(dependencies: StrategyDependencies(
+        return StrategyRootView(dependencies: StrategyDependencies(
             logs: store.logs,
             weights: store.weights,
             steps: store.steps,

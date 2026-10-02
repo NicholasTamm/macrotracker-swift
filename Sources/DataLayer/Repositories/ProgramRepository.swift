@@ -215,7 +215,7 @@ public final class SwiftDataProgramRepository: ProgramRepository {
         return snapshot
     }
 
-    public func expenditureHistory(from: Date, to: Date) throws -> [ExpenditudeSnapshot] {
+    public func expenditureHistory(from: Date, to: Date) throws -> [ExpenditureSnapshot] {
         let descriptor = FetchDescriptor<ExpenditureSnapshot>(
             predicate: #Predicate { $0.date >= from && $0.date <= to },
             sortBy: [SortDescriptor(\.date)]

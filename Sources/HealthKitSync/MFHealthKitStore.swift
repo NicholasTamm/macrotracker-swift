@@ -238,7 +238,7 @@ public final class MFHealthKitStore: ObservableObject {
         }
         let kg = sample.quantity.doubleValue(for: .gramUnit(with: .kilo))
         guard kg.isFinite, kg > 0 else { return .duplicate }
-        try weightsRepo.logWeight(kg, timestamp: sample.endDate, source: .healthKit)
+        try weightsRepo.logWeight(kg, timestamp: sample.endDate, note: nil, source: .healthKit)
         return .imported
     }
 
@@ -299,18 +299,18 @@ public final class MFHealthKitStore: ObservableObject {
         guard isHealthDataAvailable, observerQueries.isEmpty else { return }
         let stepQuery = HKObserverQuery(sampleType: MFHealthKitTypes.stepCount, predicate: nil) {
             [weak self] _, completion, error in
-            guard let self else { completion?(); return }
+            guard let self else { completion(); return }
             Task { @MainActor [weak self] in
                 if error == nil { await self?.handleBackgroundSteps() }
-                completion?()
+                completion()
             }
         }
         let weightQuery = HKObserverQuery(sampleType: MFHealthKitTypes.bodyMass, predicate: nil) {
             [weak self] _, completion, error in
-            guard let self else { completion?(); return }
+            guard let self else { completion(); return }
             Task { @MainActor [weak self] in
                 if error == nil { await self?.handleBackgroundWeight() }
-                completion?()
+                completion()
             }
         }
         observerQueries = [stepQuery, weightQuery]

@@ -175,7 +175,7 @@ public struct RecipeImportFlowView: View {
                 placeholder: "https://example.com/recipe",
                 text: $urlText,
                 icon: "link",
-                keyboard: .url
+                keyboard: .URL
             )
             .textInputAutocapitalization(.never)
             .autocorrectionDisabled()
@@ -373,7 +373,7 @@ public struct RecipeDraftEditorView: View {
                     ingredientRow(ingredient: $ingredient)
                 }
                 MFButton("Add ingredient", style: .secondary, size: .medium, icon: "plus") {
-                    draft.wrappedValue.ingredients.append(
+                    draft.ingredients.append(
                         RecipeDraftIngredient(line: "", grams: 100)
                     )
                 }
@@ -413,7 +413,7 @@ public struct RecipeDraftEditorView: View {
                 MFTextField("Ingredient", placeholder: "e.g. 2 cups black beans", text: ingredient.line)
                 Button {
                     let id = ingredient.wrappedValue.id
-                    draft.wrappedValue.ingredients.removeAll { $0.id == id }
+                    draft.ingredients.removeAll { $0.id == id }
                     matchedFoods.removeValue(forKey: id)
                 } label: {
                     Image(systemName: "trash")
@@ -467,7 +467,7 @@ public struct RecipeDraftEditorView: View {
     private var totalsPer100g: [NutrientKey: Double] {
         var totals: [NutrientKey: Double] = [:]
         var grams = 0.0
-        for ingredient in draft.wrappedValue.ingredients {
+        for ingredient in draft.ingredients {
             guard let food = matchedFoods[ingredient.id], ingredient.grams > 0 else { continue }
             grams += ingredient.grams
             for key in NutrientKey.allCases {
@@ -520,8 +520,8 @@ public struct RecipeDraftEditorView: View {
     // MARK: Actions
 
     private var canSave: Bool {
-        !draft.wrappedValue.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            && draft.wrappedValue.ingredients.contains { matchedFoods[$0.id] != nil && $0.grams > 0 }
+        !draft.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            && draft.ingredients.contains { matchedFoods[$0.id] != nil && $0.grams > 0 }
     }
 
     private func applyMatch(_ result: FoodSearchResult, to ingredientID: UUID) {
@@ -541,10 +541,10 @@ public struct RecipeDraftEditorView: View {
                 }
                 await MainActor.run {
                     matchedFoods[ingredientID] = food
-                    var updated = draft.wrappedValue
+                    var updated = draft
                     if let index = updated.ingredients.firstIndex(where: { $0.id == ingredientID }) {
                         updated.ingredients[index].matchedName = result.displayName
-                        draft.wrappedValue = updated
+                        draft = updated
                     }
                     resolvingIDs.remove(ingredientID)
                 }
@@ -559,7 +559,7 @@ public struct RecipeDraftEditorView: View {
 
     private func saveRecipe() {
         errorMessage = nil
-        let snapshot = draft.wrappedValue
+        let snapshot = draft
         let pairs: [(food: FoodItem, grams: Double)] = snapshot.ingredients.compactMap { ingredient in
             guard let food = matchedFoods[ingredient.id], ingredient.grams > 0 else { return nil }
             return (food: food, grams: ingredient.grams)
@@ -597,8 +597,9 @@ public struct RecipeDraftEditorView: View {
                         recipe,
                         grams: recipe.servingSizeGrams,
                         mealSlot: slot,
-                        source: entrySource,
-                        note: sourceNote.map { "Imported from \($0)" }
+                        timestamp: Date(),
+                        note: sourceNote.map { "Imported from \($0)" },
+                        source: entrySource
                     )
                     deps.noteFoodLogged()
                 }

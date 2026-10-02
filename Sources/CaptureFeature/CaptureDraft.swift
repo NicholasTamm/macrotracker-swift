@@ -111,8 +111,9 @@ public struct CaptureDraft: Identifiable, Equatable, Sendable {
             food,
             grams: gramsToLog,
             mealSlot: mealSlot,
-            source: entrySource,
-            note: note
+            timestamp: Date(),
+            note: note,
+            source: entrySource
         )
     }
 }

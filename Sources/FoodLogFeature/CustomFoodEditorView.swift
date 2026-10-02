@@ -41,13 +41,13 @@ public struct CustomFoodEditorView: View {
         _barcode = State(initialValue: food?.barcode ?? "")
         _servingDescription = State(initialValue: food?.servingDescription ?? "")
         _servingGrams = State(initialValue: food.map { MFFormat.grams($0.servingSizeGrams) } ?? "100")
-        _calories = State(initialValue: text(serving[.calories]))
-        _protein = State(initialValue: text(serving[.protein]))
-        _fat = State(initialValue: text(serving[.fat]))
-        _carbs = State(initialValue: text(serving[.carbs]))
-        _fiber = State(initialValue: text(serving[.fiber]))
-        _sugar = State(initialValue: text(serving[.sugar]))
-        _sodium = State(initialValue: text(serving[.sodium]))
+        _calories = State(initialValue: Self.text(serving[.calories]))
+        _protein = State(initialValue: Self.text(serving[.protein]))
+        _fat = State(initialValue: Self.text(serving[.fat]))
+        _carbs = State(initialValue: Self.text(serving[.carbs]))
+        _fiber = State(initialValue: Self.text(serving[.fiber]))
+        _sugar = State(initialValue: Self.text(serving[.sugar]))
+        _sodium = State(initialValue: Self.text(serving[.sodium]))
     }
 
     private static func text(_ value: Double?) -> String {

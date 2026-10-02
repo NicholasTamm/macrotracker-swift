@@ -117,7 +117,7 @@ public final class TrackingEnvironment {
     /// Used so weigh-ins (and later, food logging) feed streaks automatically.
     public func logTodayCompletion(kind: HabitKind, value: Double = 1) {
         guard let habit = (try? habits.habits(activeOnly: true))?.first(where: { $0.kind == kind }) else { return }
-        try? habits.logCompletion(habit: habit, dayStart: Date(), value: value)
+        try? habits.logCompletion(habit: habit, dayStart: Date(), value: value, note: nil)
         noteMutation()
     }
 
