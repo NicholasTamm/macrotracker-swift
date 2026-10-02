@@ -1,10 +1,10 @@
 //  DataLayerTests.swift
 //  XCTest coverage for DataLayer's pure logic (no SwiftData container needed).
 //
-//  Written to review standard; no Swift toolchain is available on this
-//  machine, so these await the first Xcode build for execution.
+//  Run through the MacroFactorClone iOS simulator test scheme.
 
 import XCTest
+import SwiftData
 @testable import DataLayer
 
 final class DataLayerTests: XCTestCase {
@@ -37,13 +37,13 @@ final class DataLayerTests: XCTestCase {
 
     // MARK: - FoodItem nutrient scaling
 
-    func testScaledNutrients() {
+    func testScaledNutrients() throws {
         let food = FoodItem(source: .custom, name: "Test Food")
         food.setPer100g(.calories, 200)
         food.setPer100g(.protein, 20)
         let scaled = food.scaledNutrients(grams: 150)
-        XCTAssertEqual(scaled[.calories], 300, accuracy: 0.001)
-        XCTAssertEqual(scaled[.protein], 30, accuracy: 0.001)
+        XCTAssertEqual(try XCTUnwrap(scaled[.calories]), 300, accuracy: 0.001)
+        XCTAssertEqual(try XCTUnwrap(scaled[.protein]), 30, accuracy: 0.001)
         XCTAssertEqual(food.per100g(.calories), 200, accuracy: 0.001)
     }
 
@@ -104,6 +104,38 @@ final class DataLayerTests: XCTestCase {
         XCTAssertEqual(settings.dietPlan, .balanced)
     }
 
+    @MainActor
+    func testInMemorySchemaPreservesRelationshipsAndLocalCache() throws {
+        let container = try MFModelContainerFactory.makeContainer(inMemory: true)
+        let context = ModelContext(container)
+        let settings = ProgramSettings()
+        let target = NutrientTarget(nutrientKey: .fiber, targetValue: 30)
+        settings.nutrientTargets.append(target)
+        let habit = Habit(name: "Test")
+        let completion = HabitCompletion(dayStart: Date())
+        habit.completions.append(completion)
+        let cache = OpenFoodFactsCacheEntry(queryKey: "test", rawJSON: Data())
+
+        context.insert(settings)
+        context.insert(habit)
+        context.insert(cache)
+        try context.save()
+
+        XCTAssertEqual(target.settings?.id, settings.id)
+        XCTAssertEqual(completion.habit?.id, habit.id)
+        XCTAssertEqual(try context.fetch(FetchDescriptor<NutrientTarget>()).count, 1)
+        XCTAssertEqual(try context.fetch(FetchDescriptor<HabitCompletion>()).count, 1)
+        XCTAssertEqual(try context.fetch(FetchDescriptor<OpenFoodFactsCacheEntry>()).count, 1)
+
+        context.delete(settings)
+        context.delete(habit)
+        try context.save()
+
+        XCTAssertEqual(try context.fetch(FetchDescriptor<NutrientTarget>()).count, 0)
+        XCTAssertEqual(try context.fetch(FetchDescriptor<HabitCompletion>()).count, 0)
+        XCTAssertEqual(try context.fetch(FetchDescriptor<OpenFoodFactsCacheEntry>()).count, 1)
+    }
+
     // MARK: - Open Food Facts normalization
 
     func testParseServingGrams() {
@@ -135,19 +167,19 @@ final class DataLayerTests: XCTestCase {
         let product = OpenFoodFactsClient.normalize(payload)
         XCTAssertEqual(product.name, "Test Bar")
         XCTAssertEqual(product.servingSizeGrams, 40, accuracy: 0.001)
-        XCTAssertEqual(product.nutrientsPer100g[.calories], 400, accuracy: 0.001)
-        XCTAssertEqual(product.nutrientsPer100g[.protein], 20, accuracy: 0.001)
+        XCTAssertEqual(try XCTUnwrap(product.nutrientsPer100g[.calories]), 400, accuracy: 0.001)
+        XCTAssertEqual(try XCTUnwrap(product.nutrientsPer100g[.protein]), 20, accuracy: 0.001)
         // Unit conversions: OFF grams → milligrams.
-        XCTAssertEqual(product.nutrientsPer100g[.sodium], 500, accuracy: 0.001)
-        XCTAssertEqual(product.nutrientsPer100g[.cholesterol], 50, accuracy: 0.001)
+        XCTAssertEqual(try XCTUnwrap(product.nutrientsPer100g[.sodium]), 500, accuracy: 0.001)
+        XCTAssertEqual(try XCTUnwrap(product.nutrientsPer100g[.cholesterol]), 50, accuracy: 0.001)
     }
 
     func testLossyDoubleDecoding() throws {
         let json = #"{"a": 12.5, "b": "3.25", "c": "n/a"}"#.data(using: .utf8)!
         let decoded = try JSONDecoder().decode([String: LossyDouble].self, from: json)
-        XCTAssertEqual(decoded["a"]?.value, 12.5, accuracy: 0.001)
-        XCTAssertEqual(decoded["b"]?.value, 3.25, accuracy: 0.001)
-        XCTAssertEqual(decoded["c"]?.value, 0, accuracy: 0.001)
+        XCTAssertEqual(try XCTUnwrap(decoded["a"]?.value), 12.5, accuracy: 0.001)
+        XCTAssertEqual(try XCTUnwrap(decoded["b"]?.value), 3.25, accuracy: 0.001)
+        XCTAssertEqual(try XCTUnwrap(decoded["c"]?.value), 0, accuracy: 0.001)
     }
 
     // MARK: - Cache keys

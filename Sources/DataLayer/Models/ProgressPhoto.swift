@@ -24,7 +24,6 @@ public enum PhotoViewTag: String, Codable, Sendable, CaseIterable {
 
 @Model
 public final class ProgressPhoto {
-    #Index<ProgressPhoto>([\.takenAt])
 
     @Attribute(.unique) public var id: UUID
     public var takenAt: Date

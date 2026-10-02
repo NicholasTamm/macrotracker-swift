@@ -79,7 +79,7 @@ public struct FoodMatchSheet: View {
             }
             .onAppear {
                 query = initialQuery
-                runSearch(query: initialQuery)
+                Task { await runSearch(query: initialQuery) }
             }
         }
     }

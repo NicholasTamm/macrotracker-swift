@@ -2,6 +2,7 @@ import SwiftUI
 import DesignSystem
 import FoodLogFeature
 import CaptureFeature
+import DataLayer
 
 // MARK: - QuickLogSheet
 
@@ -173,6 +174,9 @@ public struct QuickLogSheet: View {
                         try services.store.logs.logFood(
                             food,
                             grams: food.servingSizeGrams,
+                            mealSlot: .snack,
+                            timestamp: Date(),
+                            note: nil,
                             source: .manualSearch
                         )
                     }
@@ -189,7 +193,9 @@ public struct QuickLogSheet: View {
                         proteinGrams: protein,
                         fatGrams: fat,
                         carbsGrams: carbs,
-                        mealSlot: mealSlot
+                        mealSlot: mealSlot,
+                        timestamp: Date(),
+                        note: nil
                     )
                 }
             }

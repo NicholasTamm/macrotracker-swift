@@ -39,11 +39,14 @@ no StoreKit code in the project at all.)
 ## Repository layout
 
 ```
-app/
+macrotracker-swift/
 ├── Package.swift            # 11 SwiftPM library targets (swift-tools 5.9)
+├── MacroFactorClone.xcodeproj/ # checked-in iOS app and unit-test project
+├── project.yml              # XcodeGen source for the project
+├── App/                     # thin @main iOS entry point
 ├── Sources/
 │   ├── DesignSystem/        # tokens (MFColor, MFFont, MFMetrics) + components
-│   ├── AppShell/            # @main entry, 5-tab bar, router, onboarding, settings
+│   ├── AppShell/            # 5-tab bar, router, onboarding, settings
 │   ├── DataLayer/           # SwiftData models + repository protocols
 │   ├── FoodLogFeature/      # timeline, search, plate sheet, recipes
 │   ├── CaptureFeature/      # barcode, label OCR, voice, photo
@@ -62,17 +65,17 @@ app/
 ├── Scripts/                 # icon generation helpers
 ├── ReleaseNotes/            # one file per TestFlight build
 ├── docs/                    # architecture, testing, module map notes
-├── SETUP.md                 # creating the Xcode project (read this first)
+├── SETUP.md                 # Xcode build and simulator setup
 ├── MODULE_MAP.md            # target dependency rules
 └── PRIVACY.md               # privacy posture, manifest, App Store labels
 ```
 
 ## Getting started
 
-1. Read **`SETUP.md`** — the Swift package holds every library module,
-   but the iOS app bundle, asset catalog wiring, watch app, and widgets
-   live in a thin Xcode project you create once (about 15 minutes).
-2. Build the `MacroFactorClone` scheme on an iPhone 17 simulator (`⌘B`).
+1. Open `MacroFactorClone.xcodeproj` in Xcode. `project.yml` is the
+   reproducible XcodeGen source for its app and test targets.
+2. Build and run the `MacroFactorClone` scheme on an iPhone simulator.
+   See `SETUP.md` for command-line build and test commands.
 3. Run the test suites (below).
 
 ## Testing
@@ -103,7 +106,6 @@ All code, artwork, branding, and copy are original.
 
 ## Status
 
-Pre-release. The code has passed static review, engine unit tests, and a
-full parse sweep, but **the first Xcode build has not run yet** — it is
-the real verification gate for the SwiftUI/SwiftData/HealthKit targets.
+Pre-release. The iOS app builds with Xcode 26.4, passes its iOS simulator
+unit tests, and reaches onboarding on a fresh iPhone 17 Pro simulator.
 Known open items are tracked as GitHub issues.

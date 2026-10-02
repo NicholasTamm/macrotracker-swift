@@ -61,8 +61,8 @@ public struct NutritionDraftEditorView: View {
                         MFTextField(
                             "Serving size",
                             placeholder: "100",
-                            text: numberBinding(get: { draft.wrappedValue.servingSizeGrams },
-                                                set: { draft.wrappedValue.servingSizeGrams = $0 }),
+                            text: numberBinding(get: { draft.servingSizeGrams },
+                                                set: { draft.servingSizeGrams = $0 }),
                             keyboard: .decimalPad
                         )
                         Text("g")
@@ -256,8 +256,8 @@ public struct NutritionDraftEditorView: View {
 
     private func nutrientBinding(_ key: NutrientKey) -> Binding<String> {
         numberBinding(
-            get: { draft.wrappedValue.nutrientsPer100g[key] ?? 0 },
-            set: { draft.wrappedValue.nutrientsPer100g[key] = $0 }
+            get: { draft.nutrientsPer100g[key] ?? 0 },
+            set: { draft.nutrientsPer100g[key] = $0 }
         )
     }
 
@@ -280,7 +280,7 @@ public struct NutritionDraftEditorView: View {
 
     private func runSave(_ work: @escaping (CaptureDraft) async throws -> Void) {
         errorMessage = nil
-        let snapshot = draft.wrappedValue
+        let snapshot = draft
         guard snapshot.isValid else {
             errorMessage = "Give the food a name and a valid amount first."
             return

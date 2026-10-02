@@ -1,45 +1,33 @@
 # SETUP — opening the project in Xcode
 
-The Swift package (`app/Package.swift`) holds every library module, but
-SwiftPM cannot produce the iOS app bundle, the asset catalog wiring, or the
-watchOS app. Those live in a thin Xcode project you create once:
+`Package.swift` holds the library modules. The checked-in
+`MacroFactorClone.xcodeproj` supplies the thin iOS app target, assets, and
+two unit-test targets. `project.yml` is its XcodeGen 2.46.0 source. The app
+deployment target remains iOS 17.0.
 
-## 1. Create the Xcode project
+## 1. Open or regenerate the Xcode project
 
-1. Xcode → **File → New → Project → iOS → App**.
-   - Product name: `MacroFactorClone`
-   - Interface: **SwiftUI**, Language: **Swift**
-   - Minimum deployments: **iOS 17.0**
-2. **File → Add Package Dependencies → Add Local…** → select
-   `~/workspace/goals/macrofactor-clone-app/app`.
-3. In the app target → **Frameworks, Libraries, and Embedded Content**,
-   add all ten products: `DesignSystem`, `AppShell`, `DataLayer`,
-   `FoodLogFeature`, `CaptureFeature`, `CoachingEngine`,
-   `TrackingFeature`, `AnalyticsFeature`, `HealthKitSync`,
-   `EngagementFeature`.
-4. Delete the template `ContentView.swift` / `MacroFactorCloneApp.swift`
-   Xcode generated — the real `@main` entry is
-   `Sources/AppShell/MacroFactorCloneApp.swift` in the package. (If the
-   linker ever complains about the entry point living in a library, move
-   that 8-line `@main` struct into the Xcode target as a fallback.)
-5. Drag `app/Resources/Assets.xcassets` into the project (or set it as the
-   target's asset catalog). It contains:
-   - `AppIcon.appiconset` — original placeholder icon (1024×1024,
-     regenerable via `app/Scripts/make_app_icon.py`). Replace with final
-     art before TestFlight.
-   - Twelve `openmoji-<HEX>.imageset` food icons (OpenMoji, CC BY-SA 4.0,
-     vector-preserving). `MFFoodIcon` loads them via
-     `Image("openmoji-<HEX>")` from the app bundle.
+Open `MacroFactorClone.xcodeproj` and select the `MacroFactorClone` scheme.
+No untracked local files or manual Xcode target creation are required. After
+editing `project.yml`, regenerate the checked-in project with:
+
+```bash
+xcodegen generate
+```
+
+The app entry point is `App/MacroFactorCloneApp.swift`. The project links the
+local `AppShell` package product and includes `Resources/Assets.xcassets`,
+`Resources/PrivacyInfo.xcprivacy`, `Resources/Info.plist`, and the entitlements.
 
 ## 2. App target resources (Info.plist, entitlements, privacy)
 
-Ready-made files live in `app/Resources/` — use them instead of hand-editing:
+Ready-made files live in `Resources/`:
 
 | File | How to use |
 |---|---|
 | `Info.plist` | Set as the app target's Info.plist (or copy its keys into the target's Info). Contains: `mfclone` URL scheme, branded `UILaunchScreen` (`LaunchBackground` color + `LaunchLogo` image from the asset catalog), HealthKit usage strings, `UIBackgroundModes: healthkit`, capture usage strings (camera/mic/speech/photo library), `ITSAppUsesNonExemptEncryption = NO`. |
 | `MacroFactorClone.entitlements` | Set as the app target's entitlements file: `com.apple.developer.healthkit` + App Group `group.com.macrofactor.clone`. |
-| `PrivacyInfo.xcprivacy` | Add to the app target (privacy manifest: no tracking, UserDefaults reason CA92.1, no collected data types). See `app/PRIVACY.md` for the full privacy story and App Store label ("Data Not Collected"). |
+| `PrivacyInfo.xcprivacy` | Add to the app target (privacy manifest: no tracking, UserDefaults reason CA92.1, no collected data types). See `PRIVACY.md` for the full privacy story and App Store label ("Data Not Collected"). |
 
 Key table (for reference — these are all in `Info.plist` already):
 
@@ -67,8 +55,8 @@ Concrete Xcode steps (from the #10 worker's brief):
 
 1. **WidgetKit extension** — File → New → Target → **Widget Extension**,
    product name `MacroFactorCloneWidgets`:
-   - Add `app/Widgets/MFWidgets.swift` to the extension target (see
-     `app/Widgets/README.md`).
+   - Add `Widgets/MFWidgets.swift` to the extension target (see
+     `Widgets/README.md`).
    - Link the `EngagementFeature` and `DesignSystem` products to the
      extension target.
    - Capabilities: add the App Group `group.com.macrofactor.clone`.
@@ -76,8 +64,8 @@ Concrete Xcode steps (from the #10 worker's brief):
      `mfclone://foodlog` / `mfclone://quicklog` on tap.
 2. **watchOS app** — File → New → Target → **watchOS → App**, product name
    `MacroFactorCloneWatch`:
-   - Add `app/WatchApp/MacroFactorCloneWatchApp.swift` to the watch target
-     (see `app/WatchApp/README.md`).
+   - Add `WatchApp/MacroFactorCloneWatchApp.swift` to the watch target
+     (see `WatchApp/README.md`).
    - Link the package products the watch target needs (`DesignSystem`,
      `DataLayer`, `EngagementFeature`).
    - Capabilities: add the App Group `group.com.macrofactor.clone`.
@@ -87,20 +75,53 @@ Concrete Xcode steps (from the #10 worker's brief):
 3. Verify: build each scheme; on the iPhone, logging food should refresh the
    widget timeline and (when paired) push the snapshot to the watch.
 
-> Watch-ship caveat (from #10): the watchOS package compile and
-> WatchConnectivity background delivery can't be verified until the first
-> Xcode build on a Mac. If the watch target surfaces issues, defer it to v2 —
-> the phone app is unaffected.
+> Watch-ship caveat (from #10): this project currently tracks only the iOS
+> app and test targets. The watchOS target and WatchConnectivity background
+> delivery remain unverified until a watch target is added and built.
 
 ## 5. Build
 
-Select the `MacroFactorClone` scheme (iPhone 17 simulator) and build
-(`⌘B`). The scaffold compiles to the five-tab shell with placeholders;
-feature workers fill in the tabs issue by issue.
+From a clean checkout with Xcode 26.4 and an iOS 26.4 simulator installed:
 
-> Note: Swift cannot compile on the Linux build machine — all code is
-> written to review standard. The first Xcode build on a Mac is the real
-> verification.
+```bash
+xcodebuild -project MacroFactorClone.xcodeproj -scheme MacroFactorClone \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+  -derivedDataPath /tmp/MacroFactorClone-DerivedData \
+  CODE_SIGNING_ALLOWED=NO build
+
+xcodebuild -project MacroFactorClone.xcodeproj -scheme MacroFactorClone \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+  -derivedDataPath /tmp/MacroFactorClone-TestData \
+  CODE_SIGNING_ALLOWED=NO test
+```
+
+The test action runs `DataLayerTests` and `CoachingEngineTests`. For a launch
+smoke test, install the resulting `MacroFactorClone.app` with `xcrun simctl
+install <device-udid> <app-path>` and launch bundle ID
+`com.nicholastamm.MacroFactorClone` with `xcrun simctl launch`.
+
+### Verified clean baseline (2026-10-02)
+
+- Xcode 26.4 (build 17E192), XcodeGen 2.46.0, iOS 26.4 runtime
+  (build 23E244), iPhone 17 Pro simulator. Build destination target was
+  `arm64-apple-ios17.0-simulator` with iOS 17.0 deployment.
+- `xcodegen generate` succeeded from the issue worktree. The app built with
+  new DerivedData at `/private/tmp/mf-issue6-dd`, and the generated project
+  test action passed **43/43** tests with separate new DerivedData at
+  `/private/tmp/mf-issue6-test-dd`.
+- The tested app bundle installed and launched on a newly created simulator,
+  reaching the onboarding screen. Its `MacroFactorClone` executable SHA-256
+  was `345b4f3c5d5868fb46efbdcd41df43943713da69c48ce1709e9fdfe6e3863422`.
+
+The compatibility edits remove `#Index` declarations unsupported at the
+iOS 17 deployment target; this changes query indexing, not stored fields.
+SwiftData relationship inverse declarations remain on the owning side and
+their cascade behavior is covered by the in-memory schema test. The container
+now includes the local cache model alongside the versioned synced models
+when constructing `ModelContainer`; the cache retains its separate local
+configuration. The remaining source edits correct compiler-visible SwiftUI
+API names, call labels, and preview code, without implementing food-log
+issues #1–#5.
 
 ## 6. TestFlight prep (issue #12)
 
@@ -117,7 +138,7 @@ feature workers fill in the tabs issue by issue.
    First upload registers the bundle ID and the `mfclone` URL scheme needs
    no extra review.
 
-**Release notes flow.** `app/ReleaseNotes/` holds one Markdown file per
+**Release notes flow.** `ReleaseNotes/` holds one Markdown file per
 build (`1.0.0-beta1.md`, …). Copy the previous file, update the "What's in
 this build" list and the known-issues section, and paste it into the
 TestFlight "Test Details" / "What to Test" field on upload. The Beta 1
@@ -125,7 +146,7 @@ notes document the known open questions (UTC day-bucketing, watch-target
 caveat, photo-logging stub, voice parser limits).
 
 **Crash reporting.** Deliberately **no third-party crash SDK** (privacy
-posture: no tracking, no data sold — see `app/PRIVACY.md`). `MFCrashReporter`
+posture: no tracking, no data sold — see `PRIVACY.md`). `MFCrashReporter`
 (AppShell) subscribes to first-party **MetricKit** at launch; iOS delivers
 crash/diagnostic payloads to App Store Connect automatically. Read them in
 Xcode → Organizer → Crashes, or App Store Connect → TestFlight → Crashes.

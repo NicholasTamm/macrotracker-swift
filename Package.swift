@@ -71,7 +71,8 @@ let package = Package(
                 "EngagementFeature",
                 "StrategyFeature",
             ],
-            path: "Sources/AppShell"
+            path: "Sources/AppShell",
+            exclude: ["MacroFactorCloneApp.swift"]
         ),
         .target(
             name: "DataLayer",

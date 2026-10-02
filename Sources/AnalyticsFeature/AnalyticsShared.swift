@@ -116,12 +116,12 @@ public struct AnalyticsRangePicker: View {
 /// Empty state shown when a dashboard has no data yet.
 public struct AnalyticsEmptyState: View {
     private let title: String
-    private let body: String
+    private let message: String
     private let systemIcon: String
 
     public init(title: String, body: String, systemIcon: String) {
         self.title = title
-        self.body = body
+        self.message = body
         self.systemIcon = systemIcon
     }
 
@@ -134,7 +134,7 @@ public struct AnalyticsEmptyState: View {
             Text(title)
                 .font(MFFont.headline)
                 .foregroundColor(MFColor.textPrimary)
-            Text(body)
+            Text(message)
                 .font(MFFont.subheadline)
                 .foregroundColor(MFColor.textSecondary)
                 .multilineTextAlignment(.center)
@@ -142,7 +142,7 @@ public struct AnalyticsEmptyState: View {
         .frame(maxWidth: .infinity)
         .padding(.vertical, MFSpacing.xxl)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(title). \(body)")
+        .accessibilityLabel("\(title). \(message)")
     }
 }
 

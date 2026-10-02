@@ -284,7 +284,7 @@ public struct BarcodeFlowView: View {
                     return try deps.search.importOFFProduct(product)
                 }
                 try await MainActor.run {
-                    try deps.log.logFood(food, grams: gramsToLog, mealSlot: slot, source: .barcode)
+                    try deps.log.logFood(food, grams: gramsToLog, mealSlot: slot, timestamp: Date(), note: nil, source: .barcode)
                     deps.noteFoodLogged()
                 }
                 await MainActor.run {

@@ -120,7 +120,7 @@ public final class NutrientTarget {
     /// True when the user customized it (vs. the app default).
     public var isCustom: Bool
 
-    @Relationship(deleteRule: .nullify, inverse: \ProgramSettings.nutrientTargets)
+    @Relationship(deleteRule: .nullify)
     public var settings: ProgramSettings?
 
     public init(
@@ -151,7 +151,7 @@ public final class MacroDayOverride {
     public var fatGrams: Double
     public var carbsGrams: Double
 
-    @Relationship(deleteRule: .nullify, inverse: \ProgramSettings.dayOverrides)
+    @Relationship(deleteRule: .nullify)
     public var settings: ProgramSettings?
 
     public init(

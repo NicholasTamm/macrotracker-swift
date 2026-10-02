@@ -191,7 +191,7 @@ public struct WeightTrendView: View {
         for day in 0..<42 {
             let date = calendar.date(byAdding: .day, value: -day, to: Date())!
             let kg = 82.0 - Double(42 - day) * 0.06 + Double((day * 37) % 11) * 0.02
-            try? env.weights.logWeight(kg, timestamp: date)
+            try? env.weights.logWeight(kg, timestamp: date, note: nil, source: .manual)
         }
     }) { env in
         NavigationStack {

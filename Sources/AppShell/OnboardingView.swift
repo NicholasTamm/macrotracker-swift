@@ -44,9 +44,17 @@ public struct OnboardingView: View {
 private struct OnboardingPage: View {
     let glyph: AnyView
     let title: String
-    let body: String
+    let message: String
     var isLast: Bool = false
     var onComplete: () -> Void = {}
+
+    init(glyph: AnyView, title: String, body: String, isLast: Bool = false, onComplete: @escaping () -> Void = {}) {
+        self.glyph = glyph
+        self.title = title
+        self.message = body
+        self.isLast = isLast
+        self.onComplete = onComplete
+    }
 
     var body: some View {
         VStack(spacing: MFSpacing.xl) {
@@ -56,7 +64,7 @@ private struct OnboardingPage: View {
                 .font(MFFont.title)
                 .foregroundColor(MFColor.textPrimary)
                 .multilineTextAlignment(.center)
-            Text(body)
+            Text(message)
                 .font(MFFont.body)
                 .foregroundColor(MFColor.textSecondary)
                 .multilineTextAlignment(.center)

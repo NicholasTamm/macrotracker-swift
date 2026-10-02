@@ -651,7 +651,7 @@ private enum FoodEditorRequest: Identifiable {
                 foodSearch: store.foodSearch,
                 program: store.program
             )
-            .mfThemed()
+            .tint(MFColor.accent)
         }
     }
     return Demo()

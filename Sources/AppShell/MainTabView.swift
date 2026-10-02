@@ -4,6 +4,7 @@ import FoodLogFeature
 import TrackingFeature
 import AnalyticsFeature
 import StrategyFeature
+import DataLayer
 
 // MARK: - MFTab
 

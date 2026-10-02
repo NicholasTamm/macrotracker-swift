@@ -42,8 +42,6 @@ public enum EntrySource: String, Codable, Sendable, CaseIterable {
 
 @Model
 public final class LogEntry {
-    #Index<LogEntry>([\.dayStart])
-    #Index<LogEntry>([\.timestamp])
 
     @Attribute(.unique) public var id: UUID
     public var timestamp: Date

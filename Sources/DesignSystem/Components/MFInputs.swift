@@ -266,7 +266,7 @@ public struct MFSlider: View {
                     MFStepper(value: $servings, step: 0.5, range: 0.5...20, unit: "servings", label: "Servings")
                     MFToggle("Meal reminders", subtitle: "Nudge me at my usual meal times", isOn: $reminders)
                     MFSegmentedControl(options: ["Cut", "Maintain", "Bulk"], selection: $goal) { $0 }
-                    MFSlider("Rate of loss", value: $rate, range: 0...1.5, step: 0.1, valueText: "\(rate, specifier: "%.1f") lb/wk")
+                    MFSlider("Rate of loss", value: $rate, range: 0...1.5, step: 0.1, valueText: String(format: "%.1f lb/wk", rate))
                 }
                 .padding()
             }

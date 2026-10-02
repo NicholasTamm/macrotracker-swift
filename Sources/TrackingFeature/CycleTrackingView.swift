@@ -363,7 +363,7 @@ struct CycleStats {
         }
 
         let avgPeriod: Int? = periods.isEmpty ? nil : Int(
-            (periods.map(\.count).reduce(0, +) / periods.count).rounded()
+            (Double(periods.map(\.count).reduce(0, +)) / Double(periods.count)).rounded()
         )
         guard periods.count >= 2 else {
             return CycleStats(averageCycleLength: nil, averagePeriodLength: avgPeriod, predictedNextStart: nil)
@@ -390,7 +390,7 @@ struct CycleStats {
         let today = MFDates.startOfDay(Date())
         for offset in [56, 57, 58, 59, 28, 29, 30, 31] {
             if let day = calendar.date(byAdding: .day, value: -offset, to: today) {
-                try? env.cycles.logEntry(dayStart: day, flow: .medium)
+                try? env.cycles.logEntry(dayStart: day, flow: .medium, notes: nil)
             }
         }
     }) { env in

@@ -57,11 +57,12 @@ public final class MFNotificationSettingsModel {
 
 /// Lets the user toggle each reminder and pick its time. Shown from the
 /// More tab's Settings (wired by AppShell).
+@MainActor
 public struct MFNotificationSettingsView: View {
     @State private var model: MFNotificationSettingsModel
 
-    public init(model: MFNotificationSettingsModel = MFNotificationSettingsModel()) {
-        _model = State(initialValue: model)
+    public init(model: MFNotificationSettingsModel? = nil) {
+        _model = State(initialValue: model ?? MFNotificationSettingsModel())
     }
 
     public var body: some View {

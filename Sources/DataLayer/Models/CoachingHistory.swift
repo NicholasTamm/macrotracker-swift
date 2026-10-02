@@ -27,7 +27,6 @@ public enum ExpenditureMethod: String, Codable, Sendable, CaseIterable {
 /// any on-demand re-estimation). Powers the expenditure chart (#8).
 @Model
 public final class ExpenditureSnapshot {
-    #Index<ExpenditureSnapshot>([\.date])
 
     @Attribute(.unique) public var id: UUID
     public var date: Date
@@ -67,7 +66,6 @@ public final class ExpenditureSnapshot {
 /// Strategy screen can show past check-ins verbatim.
 @Model
 public final class CheckInRecord {
-    #Index<CheckInRecord>([\.date])
 
     @Attribute(.unique) public var id: UUID
     public var date: Date

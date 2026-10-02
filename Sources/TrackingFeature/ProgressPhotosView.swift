@@ -76,16 +76,13 @@ public struct ProgressPhotosView: View {
                 .accessibilityLabel("Add photos")
             }
         }
-        // Hidden picker opened from the toolbar and the empty state.
-        .background {
-            PhotosPicker(
-                isPresented: $showingPicker,
-                selection: $pickerItems,
-                maxSelectionCount: 6,
-                matching: .images,
-                photoLibrary: .shared()
-            )
-        }
+        .photosPicker(
+            isPresented: $showingPicker,
+            selection: $pickerItems,
+            maxSelectionCount: 6,
+            matching: .images,
+            photoLibrary: .shared()
+        )
         .onChange(of: pickerItems) { _, new in
             guard !new.isEmpty else { return }
             Task { await stageImport(new) }

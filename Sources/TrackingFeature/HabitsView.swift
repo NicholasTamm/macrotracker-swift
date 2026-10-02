@@ -234,7 +234,7 @@ public struct HabitsView: View {
                     try env.habits.deleteCompletion(completion)
                 }
             } else {
-                try env.habits.logCompletion(habit: habit, dayStart: Date())
+                try env.habits.logCompletion(habit: habit, dayStart: Date(), value: 1, note: nil)
             }
             env.noteMutation()
             load()

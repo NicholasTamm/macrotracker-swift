@@ -125,8 +125,7 @@ public struct NutritionDashboardView: View {
                 .interpolationMethod(.catmullRom)
                 PointMark(
                     x: .value("Week", week.weekStart, unit: .weekOfYear),
-                    y: .value("Protein", week.avgProtein),
-                    series: .value("Macro", "Protein")
+                    y: .value("Protein", week.avgProtein)
                 )
                 .foregroundStyle(MFColor.protein)
                 .symbolSize(40)
