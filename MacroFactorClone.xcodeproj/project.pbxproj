@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		05BDD08908F20236124FCDE6 /* FoodTimelineNameTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 889C9916753256675DAF9AE0 /* FoodTimelineNameTests.swift */; };
 		22D310239D4786B5D4000016 /* CoachingEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38B066849BB1708297E1A3D3 /* CoachingEngineTests.swift */; };
 		247FED27D4B5E8B782F49849 /* DataLayerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63C4D682B3D33905B014A898 /* DataLayerTests.swift */; };
 		4D6249B07424682BDB956A9F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A3ED64551C1897EC54508230 /* Assets.xcassets */; };
@@ -17,16 +18,28 @@
 		FA6748E165613FFF45A857A8 /* DataLayer in Frameworks */ = {isa = PBXBuildFile; productRef = C77BDC54E867136AC30E6277 /* DataLayer */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		8FBD91AC7112A2FD0D38F8C4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FA5230FD1B021FE0B2D296D6 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CF7B09677C601EF9CB717EE9;
+			remoteInfo = MacroFactorClone;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		07C2BC1CFC919106D0395A6B /* CoachingEngineTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = CoachingEngineTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		38B066849BB1708297E1A3D3 /* CoachingEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoachingEngineTests.swift; sourceTree = "<group>"; };
-		5DF12C9F62E6C23B7FA82C3A /* issue-6-build-baseline */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "issue-6-build-baseline"; path = .; sourceTree = SOURCE_ROOT; };
 		63C4D682B3D33905B014A898 /* DataLayerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataLayerTests.swift; sourceTree = "<group>"; };
+		889C9916753256675DAF9AE0 /* FoodTimelineNameTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodTimelineNameTests.swift; sourceTree = "<group>"; };
 		98CD3C5A3EE12A5E4669904C /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		9F582897174E1C62D95BDCA5 /* DataLayerTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = DataLayerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A3ED64551C1897EC54508230 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		B8E2D6D83E1FE6B7FB0A8921 /* FoodLogUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = FoodLogUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C0409AED9868BD86BA0488F4 /* MacroFactorCloneApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacroFactorCloneApp.swift; sourceTree = "<group>"; };
 		E78A251869FD982558B666BA /* MacroFactorClone.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = MacroFactorClone.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		F801CA539D25B45CF4471523 /* issue-4-food-name */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "issue-4-food-name"; path = .; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -78,9 +91,18 @@
 		2266AB07A521694644C230CF /* Packages */ = {
 			isa = PBXGroup;
 			children = (
-				5DF12C9F62E6C23B7FA82C3A /* issue-6-build-baseline */,
+				F801CA539D25B45CF4471523 /* issue-4-food-name */,
 			);
 			name = Packages;
+			sourceTree = "<group>";
+		};
+		906D1DEE2147E0E0BC2C1D8F /* FoodLogUITests */ = {
+			isa = PBXGroup;
+			children = (
+				889C9916753256675DAF9AE0 /* FoodTimelineNameTests.swift */,
+			);
+			name = FoodLogUITests;
+			path = Tests/FoodLogUITests;
 			sourceTree = "<group>";
 		};
 		9E020AFA101406701DB5E9B9 = {
@@ -89,6 +111,7 @@
 				C8D31598724B1CCD1B64768C /* App */,
 				FEF6B14A7B334B0EE62BCF59 /* CoachingEngineTests */,
 				05FDC59D8B39971B4BFAA437 /* DataLayerTests */,
+				906D1DEE2147E0E0BC2C1D8F /* FoodLogUITests */,
 				2266AB07A521694644C230CF /* Packages */,
 				08ABAEDB018A2D7A42C5A73C /* Resources */,
 				DC64A5D290E92FDD2B6C0E90 /* Products */,
@@ -108,6 +131,7 @@
 			children = (
 				07C2BC1CFC919106D0395A6B /* CoachingEngineTests.xctest */,
 				9F582897174E1C62D95BDCA5 /* DataLayerTests.xctest */,
+				B8E2D6D83E1FE6B7FB0A8921 /* FoodLogUITests.xctest */,
 				E78A251869FD982558B666BA /* MacroFactorClone.app */,
 			);
 			name = Products;
@@ -183,6 +207,24 @@
 			productReference = 9F582897174E1C62D95BDCA5 /* DataLayerTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		DD302318830FD0AE26652028 /* FoodLogUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 54368248EC023BD4490DAE0E /* Build configuration list for PBXNativeTarget "FoodLogUITests" */;
+			buildPhases = (
+				BCBCB5ED578BCB74558E2CC8 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				EF273A07C40CCB2F51421DFC /* PBXTargetDependency */,
+			);
+			name = FoodLogUITests;
+			packageProductDependencies = (
+			);
+			productName = FoodLogUITests;
+			productReference = B8E2D6D83E1FE6B7FB0A8921 /* FoodLogUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -192,6 +234,9 @@
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
+					DD302318830FD0AE26652028 = {
+						TestTargetID = CF7B09677C601EF9CB717EE9;
+					};
 				};
 			};
 			buildConfigurationList = 223A2B741F5E5E94F0E0B1C8 /* Build configuration list for PBXProject "MacroFactorClone" */;
@@ -214,6 +259,7 @@
 				CF7B09677C601EF9CB717EE9 /* MacroFactorClone */,
 				D78BF6FCB555B11FAB707857 /* DataLayerTests */,
 				1D9966CD9F65E7DB9352CDE4 /* CoachingEngineTests */,
+				DD302318830FD0AE26652028 /* FoodLogUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -239,6 +285,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		BCBCB5ED578BCB74558E2CC8 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				05BDD08908F20236124FCDE6 /* FoodTimelineNameTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		C88DAF952BF32CD7BDDC14B5 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -256,6 +310,14 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		EF273A07C40CCB2F51421DFC /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CF7B09677C601EF9CB717EE9 /* MacroFactorClone */;
+			targetProxy = 8FBD91AC7112A2FD0D38F8C4 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		0CB5D2944475A7E235DB8D84 /* Debug */ = {
@@ -446,6 +508,23 @@
 			};
 			name = Debug;
 		};
+		861BCDBC3E6131BCE517AAAB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.nicholastamm.FoodLogUITests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = MacroFactorClone;
+			};
+			name = Debug;
+		};
 		8E66A6311EBFFB6335E1689F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -464,6 +543,23 @@
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.9;
 				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		CBDCD58E3EE724C809456B91 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.nicholastamm.FoodLogUITests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = MacroFactorClone;
 			};
 			name = Release;
 		};
@@ -491,6 +587,15 @@
 			buildConfigurations = (
 				698ED4F1940ED6EFE729598F /* Debug */,
 				2498CFF1E1EE4DAF715AA2C1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		54368248EC023BD4490DAE0E /* Build configuration list for PBXNativeTarget "FoodLogUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				861BCDBC3E6131BCE517AAAB /* Debug */,
+				CBDCD58E3EE724C809456B91 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
