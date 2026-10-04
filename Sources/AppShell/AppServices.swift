@@ -73,10 +73,50 @@ public final class AppServices {
     /// SwiftData store can't be created (AppRootView shows a retry screen).
     public static func build() -> AppServices? {
         guard let store = try? DataStore() else { return nil }
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("-issue4FoodTileFixture") {
+            do {
+                try seedFoodTileFixture(in: store)
+            } catch {
+                assertionFailure("Could not seed food tile UI test: \(error)")
+            }
+        }
+        #endif
         let services = AppServices(store: store)
         services.launch()
         return services
     }
+
+    #if DEBUG
+    /// Disposable UI-test entries in the app's real store. Both names map to
+    /// the same fallback thumbnail, with their distinguishing words last.
+    private static func seedFoodTileFixture(in store: DataStore) throws {
+        let now = Date()
+        let existing = try store.logs.entries(forDay: MFDates.startOfDay(now))
+        for (name, calories) in [
+            ("QA4 Yogurt plain nonfat", 100.0),
+            ("QA4 Yogurt plain whole", 180.0),
+        ] where !existing.contains(where: { $0.foodName == name }) {
+            let food = try store.foods.saveFood(
+                name: name,
+                brand: "",
+                barcode: nil,
+                servingDescription: "100 g",
+                servingSizeGrams: 100,
+                nutrientsPer100g: [.calories: calories],
+                source: .custom
+            )
+            try store.logs.logFood(
+                food,
+                grams: 100,
+                mealSlot: .snack,
+                timestamp: now,
+                note: nil,
+                source: .manualSearch
+            )
+        }
+    }
+    #endif
 
     /// One-time launch wiring. Idempotent.
     public func launch() {

@@ -25,6 +25,8 @@ public struct FoodTimelineBlock: Identifiable {
 /// flame, macro values with trailing letter badges — per
 /// `ref-timeline-log.png`), and food thumbnails below.
 public struct FoodTimelineBlockView: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     let block: FoodTimelineBlock
     let onAdd: () -> Void
     let onSelectEntry: (LogEntry) -> Void
@@ -71,19 +73,27 @@ public struct FoodTimelineBlockView: View {
                 }
 
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: MFSpacing.md) {
+                    HStack(alignment: .top, spacing: MFSpacing.md) {
                         ForEach(block.entries, id: \.id) { entry in
                             Button { onSelectEntry(entry) } label: {
-                                VStack(spacing: 4) {
+                                VStack(spacing: MFSpacing.xs) {
                                     MFFoodThumbnail(
                                         openmojiHex: MFFoodIconMapper.hex(forName: entry.foodName),
                                         symbol: symbol(for: entry)
                                     )
+                                    Text(entry.foodName)
+                                        .font(MFFont.footnote.weight(.semibold))
+                                        .foregroundColor(MFColor.textPrimary)
+                                        .multilineTextAlignment(.center)
+                                        .fixedSize(horizontal: false, vertical: true)
                                     Text(MFFormat.kcal(entry.calories))
                                         .font(MFFont.caption2)
                                         .monospacedDigit()
                                         .foregroundColor(MFColor.textSecondary)
                                 }
+                                .frame(width: dynamicTypeSize.isAccessibilitySize ? 220 : 144)
+                                .padding(.vertical, MFSpacing.xs)
+                                .contentShape(Rectangle())
                             }
                             .contextMenu {
                                 Button("Copy food") {

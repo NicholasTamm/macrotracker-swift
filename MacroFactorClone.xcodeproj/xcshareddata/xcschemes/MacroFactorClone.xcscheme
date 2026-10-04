@@ -61,6 +61,17 @@
                ReferencedContainer = "container:MacroFactorClone.xcodeproj">
             </BuildableReference>
          </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "DD302318830FD0AE26652028"
+               BuildableName = "FoodLogUITests.xctest"
+               BlueprintName = "FoodLogUITests"
+               ReferencedContainer = "container:MacroFactorClone.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
       <CommandLineArguments>
       </CommandLineArguments>
