@@ -1,7 +1,7 @@
 # Code Review: Issue #4 visible food names
 
 **Reviewer**: AI Principal Engineer
-**Scope**: Issue #4 diff against branch base `5c8e8d4f90339fd7aceab0237010d0d6010a7562` in `FoodTimelineView.swift`, `AppServices.swift`, `project.yml`, generated Xcode project and scheme, and `FoodTimelineNameTests.swift`; `docs/qa/issue-4-food-name.md` and its five simulator screenshots
+**Scope**: Issue #4 diff against current `origin/main` at `105c5f77a9da7e60952af68e9c2f51a4a5d0f4f1` in `FoodTimelineView.swift`, `AppServices.swift`, `project.yml`, generated Xcode project and scheme, and `FoodTimelineNameTests.swift`; `docs/qa/issue-4-food-name.md` and its five simulator screenshots
 **Context**: Make logged foods visibly identifiable in the timeline while retaining calories, tap behavior, and one useful VoiceOver identity
 **Vote**: **PASSES**
 
@@ -36,12 +36,13 @@ None.
 ## Verification and limits
 
 - The supplied iPhone 17e screenshots show both names and calorie values immediately and after relaunch. Both foods use the same fallback image yet are distinguishable.
-- All five screenshots committed under `docs/qa/screenshots/issue-4/` are byte-identical to the screenshots I inspected before the QA document was added. The document's device-specific visual results and stated limits match those images.
+- All five screenshots committed under `docs/qa/screenshots/issue-4/` are byte-identical to the screenshots I inspected before the QA document was added. They were captured on the earlier `5c8e8d4f90339fd7aceab0237010d0d6010a7562` base plus the issue #4 diff. The document's device-specific visual results and stated limits match those images.
 - The supplied 375-point iPhone SE 3rd generation screenshot shows both complete distinguishing names and calories without overlap.
 - At AX Large, the first tile's name and calories are readable; after horizontal scrolling the second tile's name and calories are readable. The tile remains tappable by the UI test. The supplied UI test run passed in all three configurations; I did not rerun it independently.
 - The full Xcode scheme subsequently passed on the 375-point SE3 simulator: 13 DataLayer tests, 30 CoachingEngine tests, and 1 FoodLog UI test, with zero failures. I verified those suite totals and `** TEST SUCCEEDED **` in `/private/tmp/issue4-all-tests.log`.
+- After the clean rebase onto `origin/main` `105c5f7`, the full scheme passed again on the SE3 simulator: the same 13, 30, and 1 tests with zero failures. I verified the suite totals and `** TEST SUCCEEDED **` in `/private/tmp/issue4-rebased-tests.log`. The final-base UI test exercises the tile behavior, including relaunch and scrolling; the earlier screenshots remain the visual evidence.
 - AX Large screenshots also show clipping in the existing week/day summary and hour header. Those components are outside the changed tile code and outside issue #4. The 320-point SE1 simulator is unavailable on the supplied iOS 26.4 runtime.
-- `git diff --check` passes. The test fixture is compiled only under `DEBUG`; the release path does not seed entries.
+- `git diff --check origin/main` passes. The rebased diff contains the same issue #4 source and test changes; the test fixture is compiled only under `DEBUG`, so the release path does not seed entries.
 
 ## Dimension Summary
 
