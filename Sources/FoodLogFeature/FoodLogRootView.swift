@@ -434,7 +434,7 @@ public struct FoodLogRootView: View {
                     onCreateCustomFood: {
                         activeSheet = nil
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
-                            activeSheet = .customFood(nil)
+                            activeSheet = .customFood(nil, hour: hour)
                         }
                     },
                     onCreateRecipe: {
@@ -474,10 +474,22 @@ public struct FoodLogRootView: View {
                         showToast("Couldn't log quick add")
                     }
                 }
-            case .customFood(let food):
-                CustomFoodEditorView(food: food, foods: foods) { _ in
+            case .customFood(let food, let hour):
+                CustomFoodEditorView(food: food, foods: foods) { savedFood in
                     activeSheet = nil
-                    showToast(food == nil ? "Custom food saved" : "Custom food updated")
+                    if food == nil {
+                        // Wait for the creation sheet to dismiss before presenting
+                        // the same amount and nutrition preview used by search.
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                            editorRequest = .logFood(
+                                food: savedFood,
+                                grams: savedFood.servingSizeGrams,
+                                hour: hour
+                            )
+                        }
+                    } else {
+                        showToast("Custom food updated")
+                    }
                 }
             case .recipe(let recipe):
                 RecipeBuilderView(recipe: recipe, foods: foods, searchService: searchService) { _ in
@@ -491,7 +503,7 @@ public struct FoodLogRootView: View {
                         activeSheet = nil
                         editorRequest = .logFood(food: food, grams: food.servingSizeGrams, hour: nil)
                     },
-                    onEditFood: { food in replaceSheet(with: .customFood(food)) },
+                    onEditFood: { food in replaceSheet(with: .customFood(food, hour: nil)) },
                     onEditRecipe: { recipe in replaceSheet(with: .recipe(recipe)) }
                 )
             case .dayNote:
@@ -519,6 +531,9 @@ public struct FoodLogRootView: View {
                 onLog: { grams, mealSlot, date, note in
                     let ok = viewModel.logFood(food, grams: grams, mealSlot: mealSlot, timestamp: date, note: note)
                     if ok {
+                        if !Calendar.current.isDate(date, inSameDayAs: viewModel.selectedDay) {
+                            viewModel.selectDay(date)
+                        }
                         editorRequest = nil
                         showToast("Logged \(food.name)")
                     }
@@ -600,7 +615,7 @@ private enum FoodLogSheet: Identifiable {
     case search(hour: Int?)
     case plate
     case quickAdd
-    case customFood(FoodItem?)
+    case customFood(FoodItem?, hour: Int?)
     case recipe(FoodItem?)
     case library
     case dayNote
@@ -611,7 +626,8 @@ private enum FoodLogSheet: Identifiable {
         case .search(let hour): return "search-\(hour.map(String.init) ?? "any")"
         case .plate: return "plate"
         case .quickAdd: return "quickAdd"
-        case .customFood(let food): return "customFood-\(food?.id.uuidString ?? "new")"
+        case .customFood(let food, let hour):
+            return "customFood-\(food?.id.uuidString ?? "new")-\(hour.map(String.init) ?? "any")"
         case .recipe(let recipe): return "recipe-\(recipe?.id.uuidString ?? "new")"
         case .library: return "library"
         case .dayNote: return "dayNote"
