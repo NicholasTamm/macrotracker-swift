@@ -81,6 +81,13 @@ public final class AppServices {
                 assertionFailure("Could not seed food tile UI test: \(error)")
             }
         }
+        if ProcessInfo.processInfo.arguments.contains("-issue2FoodPasteFixture") {
+            do {
+                try seedFoodPasteFixture(in: store)
+            } catch {
+                assertionFailure("Could not seed food paste UI test: \(error)")
+            }
+        }
         #endif
         let services = AppServices(store: store)
         services.launch()
@@ -111,6 +118,37 @@ public final class AppServices {
                 grams: 100,
                 mealSlot: .snack,
                 timestamp: now,
+                note: nil,
+                source: .manualSearch
+            )
+        }
+    }
+
+    /// Disposable source-day entries for exercising the production copy,
+    /// date navigation, and paste controls in XCUITest. Idempotent on relaunch.
+    private static func seedFoodPasteFixture(in store: DataStore) throws {
+        let day = MFDates.startOfDay(Date())
+        let existing = try store.logs.entries(forDay: day)
+        let calendar = Calendar.current
+        for (name, calories, minute, slot) in [
+            ("QA2 Egg", 120.0, 5, MealSlot.breakfast),
+            ("QA2 Oats", 120.0, 42, MealSlot.snack),
+        ] where !existing.contains(where: { $0.foodName == name }) {
+            let food = try store.foods.saveFood(
+                name: name,
+                brand: "",
+                barcode: nil,
+                servingDescription: "100 g",
+                servingSizeGrams: 100,
+                nutrientsPer100g: [.calories: calories, .protein: 10],
+                source: .seedDatabase
+            )
+            let timestamp = calendar.date(bySettingHour: 11, minute: minute, second: 0, of: day) ?? day
+            try store.logs.logFood(
+                food,
+                grams: 100,
+                mealSlot: slot,
+                timestamp: timestamp,
                 note: nil,
                 source: .manualSearch
             )

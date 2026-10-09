@@ -33,6 +33,7 @@ targets:
         - DataLayerTests
         - CoachingEngineTests
         - FoodLogUITests
+        - FoodLogFeatureTests
   DataLayerTests:
     type: bundle.unit-test
     platform: iOS
@@ -62,6 +63,19 @@ targets:
       - path: Tests/FoodLogUITests
     dependencies:
       - target: MacroFactorClone
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+  FoodLogFeatureTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: Tests/FoodLogFeatureTests
+    dependencies:
+      - package: MacroFactorClone
+        product: FoodLogFeature
+      - package: MacroFactorClone
+        product: DataLayer
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES

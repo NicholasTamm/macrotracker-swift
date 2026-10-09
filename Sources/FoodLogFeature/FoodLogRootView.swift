@@ -25,6 +25,8 @@ public struct FoodLogRootView: View {
     @State private var editorRequest: FoodEditorRequest?
     @State private var plateItems: [PlateItem] = []
     @State private var toastMessage: String?
+    @State private var pasteError: String?
+    @State private var isPasteErrorPresented = false
 
     private var bannerMode: MFWeekBannerMode {
         MFWeekBannerMode(rawValue: bannerModeRaw) ?? .show
@@ -95,6 +97,11 @@ public struct FoodLogRootView: View {
         .sheet(item: $editorRequest) { request in
             editorView(for: request)
         }
+        .alert("Paste failed", isPresented: $isPasteErrorPresented) {
+            Button("OK", role: .cancel) { pasteError = nil }
+        } message: {
+            Text(pasteError ?? "Please try again.")
+        }
         .overlay(alignment: .bottom) {
             if let message = toastMessage {
                 MFToast(message: message)
@@ -135,8 +142,18 @@ public struct FoodLogRootView: View {
                 Button("Copy day") { viewModel.copyCurrentDay(); showToast("Day copied") }
                 if let pasteLabel = viewModel.clipboard.pasteLabel {
                     Button(pasteLabel) {
-                        let count = viewModel.pasteIntoSelectedDay()
-                        showToast(count > 0 ? "Pasted \(count) entr\(count == 1 ? "y" : "ies")" : "Nothing to paste")
+                        let result = viewModel.pasteIntoSelectedDay()
+                        if result.count > 0 {
+                            showToast("Pasted \(result.count) entr\(result.count == 1 ? "y" : "ies")")
+                        } else if result.error == nil {
+                            showToast("Nothing to paste")
+                        }
+                        if let error = result.error {
+                            pasteError = result.count > 0
+                                ? "Pasted \(result.count) entr\(result.count == 1 ? "y" : "ies"). \(error)"
+                                : error
+                            isPasteErrorPresented = true
+                        }
                     }
                 }
                 Button(viewModel.isDayComplete ? "Reopen day" : "Mark day complete") {

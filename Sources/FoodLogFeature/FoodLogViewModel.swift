@@ -21,6 +21,18 @@ public struct MFDayMacroGoals: Equatable, Sendable {
     public static let empty = MFDayMacroGoals(calories: 0, protein: 0, fat: 0, carbs: 0)
 }
 
+/// The number of destination entries verified after paste, plus any write
+/// or refresh error. A partial block paste can have both values.
+public struct FoodPasteResult {
+    public let count: Int
+    public let error: String?
+
+    public init(count: Int, error: String? = nil) {
+        self.count = count
+        self.error = error
+    }
+}
+
 // MARK: - FoodLogViewModel
 
 /// Owns the Food Log tab's day state: entries, totals, targets, and the
@@ -251,34 +263,78 @@ public final class FoodLogViewModel {
         clipboard.copyDay(selectedDay)
     }
 
-    /// Pastes the clipboard payload into the selected day. Returns the
-    /// number of entries created.
+    /// Pastes the clipboard payload into the selected day. The clipboard
+    /// remains available for intentional repeat pastes until replaced or the
+    /// app process exits. Each repeat creates independent entries.
     @discardableResult
-    public func pasteIntoSelectedDay() -> Int {
-        guard let payload = clipboard.payload else { return 0 }
-        do {
-            switch payload {
-            case .food(let snapshot):
-                try pasteSnapshot(snapshot, at: Date())
-                reload()
-                noteFoodLogged(at: Date())
-                return 1
-            case .block(_, let snapshots):
-                let now = Date()
-                for snapshot in snapshots { try pasteSnapshot(snapshot, at: now) }
-                reload()
-                noteFoodLogged(at: now)
-                return snapshots.count
-            case .day(let sourceDay):
-                let copies = try logs.copyDay(from: sourceDay, to: selectedDay)
-                reload()
-                if !copies.isEmpty { noteFoodLogged(at: selectedDay) }
-                return copies.count
+    public func pasteIntoSelectedDay() -> FoodPasteResult {
+        guard let payload = clipboard.payload else { return FoodPasteResult(count: 0) }
+        var written: [LogEntry] = []
+        var pasteError: String?
+
+        switch payload {
+        case .food(let snapshot):
+            do {
+                written.append(try pasteSnapshot(snapshot, at: Self.destinationTimestamp(for: snapshot, on: selectedDay)))
+            } catch {
+                pasteError = error.localizedDescription
             }
-        } catch {
-            lastError = error.localizedDescription
-            return 0
+        case .block(_, let snapshots):
+            // Keep every entry's source minute and meal slot. Stop on the
+            // first failed write; already saved entries remain visible.
+            for snapshot in snapshots {
+                do {
+                    written.append(try pasteSnapshot(snapshot, at: Self.destinationTimestamp(for: snapshot, on: selectedDay)))
+                } catch {
+                    pasteError = error.localizedDescription
+                    break
+                }
+            }
+        case .day(let sourceDay):
+            do {
+                written = try logs.copyDay(from: sourceDay, to: selectedDay)
+            } catch {
+                pasteError = error.localizedDescription
+            }
         }
+
+        reload()
+        if let refreshError = lastError {
+            pasteError = pasteError.map { "\($0) Also couldn't refresh the selected day: \(refreshError)" }
+                ?? "Couldn't refresh the selected day: \(refreshError)"
+        }
+        let visibleCount = written.filter { writtenEntry in
+            entries.contains { $0.id == writtenEntry.id }
+        }.count
+        if visibleCount != written.count && pasteError == nil {
+            pasteError = "Some saved entries are not visible on the selected day."
+        }
+        if visibleCount > 0 { noteFoodLogged(at: selectedDay) }
+        lastError = pasteError
+        return FoodPasteResult(count: visibleCount, error: pasteError)
+    }
+
+    /// Source local clock time is the default when the UI has no separate
+    /// destination time picker. Fall back to the day start for a calendar
+    /// time that cannot occur on the destination day (for example DST).
+    static func destinationTimestamp(
+        for snapshot: FoodLogClipboard.EntrySnapshot,
+        on selectedDay: Date,
+        calendar: Calendar = .current
+    ) -> Date {
+        let time = calendar.dateComponents([.hour, .minute, .second], from: snapshot.sourceTimestamp)
+        let candidate = calendar.date(
+            bySettingHour: time.hour ?? 0,
+            minute: time.minute ?? 0,
+            second: time.second ?? 0,
+            of: selectedDay
+        ) ?? selectedDay
+        let actual = calendar.dateComponents([.hour, .minute, .second], from: candidate)
+        let matchesClockTime = actual.hour == time.hour
+            && actual.minute == time.minute
+            && actual.second == time.second
+        return calendar.isDate(candidate, inSameDayAs: selectedDay) && matchesClockTime
+            ? candidate : selectedDay
     }
 
     /// Fires `onFoodLogged` only when the written timestamp falls on the
@@ -289,9 +345,9 @@ public final class FoodLogViewModel {
         onFoodLogged?()
     }
 
-    private func pasteSnapshot(_ snapshot: FoodLogClipboard.EntrySnapshot, at date: Date) throws {
+    private func pasteSnapshot(_ snapshot: FoodLogClipboard.EntrySnapshot, at date: Date) throws -> LogEntry {
         if let foodID = snapshot.foodID, let food = try foods.food(id: foodID) {
-            try logs.logFood(
+            return try logs.logFood(
                 food,
                 grams: snapshot.grams,
                 mealSlot: snapshot.mealSlot,
@@ -301,7 +357,7 @@ public final class FoodLogViewModel {
             )
         } else {
             // Foodless snapshot (e.g. quick-add): re-log the macro values.
-            try logs.quickAdd(
+            return try logs.quickAdd(
                 calories: snapshot.nutrients[.calories] ?? 0,
                 proteinGrams: snapshot.nutrients[.protein] ?? 0,
                 fatGrams: snapshot.nutrients[.fat] ?? 0,

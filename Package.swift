@@ -142,5 +142,10 @@ let package = Package(
             dependencies: ["DataLayer"],
             path: "Tests/DataLayerTests"
         ),
+        .testTarget(
+            name: "FoodLogFeatureTests",
+            dependencies: ["FoodLogFeature", "DataLayer"],
+            path: "Tests/FoodLogFeatureTests"
+        ),
     ]
 )
