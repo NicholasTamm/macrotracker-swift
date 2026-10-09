@@ -19,6 +19,8 @@ public final class FoodLogClipboard: ObservableObject {
         public var foodID: UUID?
         public var foodName: String
         public var grams: Double
+        /// Source clock time; paste combines it with the selected log day.
+        public var sourceTimestamp: Date
         public var mealSlot: MealSlot
         public var note: String?
         public var nutrients: [NutrientKey: Double]
@@ -27,6 +29,7 @@ public final class FoodLogClipboard: ObservableObject {
             foodID: UUID? = nil,
             foodName: String,
             grams: Double,
+            sourceTimestamp: Date = Date(),
             mealSlot: MealSlot = .other,
             note: String? = nil,
             nutrients: [NutrientKey: Double] = [:]
@@ -34,6 +37,7 @@ public final class FoodLogClipboard: ObservableObject {
             self.foodID = foodID
             self.foodName = foodName
             self.grams = grams
+            self.sourceTimestamp = sourceTimestamp
             self.mealSlot = mealSlot
             self.note = note
             self.nutrients = nutrients
@@ -47,6 +51,7 @@ public final class FoodLogClipboard: ObservableObject {
                 foodID: entry.food?.id,
                 foodName: entry.foodName,
                 grams: entry.grams,
+                sourceTimestamp: entry.timestamp,
                 mealSlot: entry.mealSlot,
                 note: entry.note,
                 nutrients: nutrients
