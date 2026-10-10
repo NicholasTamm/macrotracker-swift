@@ -47,6 +47,82 @@ final class DataLayerTests: XCTestCase {
         XCTAssertEqual(food.per100g(.calories), 200, accuracy: 0.001)
     }
 
+    func testNamedServingCatalogKeepsLegacyServingAndNutritionBasis() {
+        let food = FoodItem(source: .seedDatabase, name: "Egg",
+                            servingDescription: "1 large egg (50 g)", servingSizeGrams: 50)
+        XCTAssertEqual(food.servingSizes.map(\.name), ["1 large egg (50 g)"])
+        XCTAssertEqual(food.servingSizes[0].grams, 50)
+        food.servingSizes = [
+            ServingSize(name: "large egg", grams: 50),
+            ServingSize(name: "small egg", grams: 38),
+        ]
+        XCTAssertEqual(food.servingSizes.map(\.name), ["large egg", "small egg"])
+        XCTAssertEqual(food.servingDescription, "large egg")
+        XCTAssertEqual(food.servingSizeGrams, 50)
+    }
+
+    func testServingAmountValidationAndBoundaries() throws {
+        XCTAssertEqual(try ServingAmount.parse("1.5", gramsPerUnit: 50), 1.5)
+        XCTAssertEqual(try ServingAmount.parse("0,25", gramsPerUnit: 50), 0.25)
+        XCTAssertEqual(try ServingAmount.parse("1000", gramsPerUnit: 50), 1000)
+        for (raw, expected) in [
+            ("", ServingAmountError.notNumeric),
+            ("egg", .notNumeric),
+            ("1e2", .notNumeric),
+            ("0", .notPositive),
+            ("-1", .notPositive),
+            ("1.234", .tooPrecise),
+            ("1000.01", .tooLarge),
+        ] {
+            XCTAssertThrowsError(try ServingAmount.parse(raw, gramsPerUnit: 50)) {
+                XCTAssertEqual($0 as? ServingAmountError, expected)
+            }
+        }
+        XCTAssertThrowsError(try ServingAmount.parse("501", gramsPerUnit: 200)) {
+            XCTAssertEqual($0 as? ServingAmountError, .tooLarge)
+        }
+    }
+
+    @MainActor
+    func testNamedServingSelectionPersistsAcrossContextsAndEditScalesSnapshot() throws {
+        let container = try MFModelContainerFactory.makeContainer(inMemory: true)
+        let context = ModelContext(container)
+        let food = FoodItem(source: .custom, name: "Egg", servingDescription: "large egg", servingSizeGrams: 50)
+        food.servingSizes = [ServingSize(name: "large egg", grams: 50), ServingSize(name: "small egg", grams: 25)]
+        food.setPer100g(.calories, 155)
+        food.setPer100g(.protein, 13)
+        context.insert(food)
+        try context.save()
+
+        let date = Date(timeIntervalSince1970: 1_700_000_000)
+        let repository = SwiftDataLogRepository(context: context)
+        let entry = try repository.logFoodWithServing(food,
+            selection: ServingSelection(name: "large egg", gramsPerUnit: 50, quantity: 1.5),
+            mealSlot: .breakfast, timestamp: date, note: nil)
+        XCTAssertEqual(entry.grams, 75, accuracy: 0.001)
+        XCTAssertEqual(entry.calories, 116.25, accuracy: 0.001)
+
+        let reopenedContext = ModelContext(container)
+        let reopened = try XCTUnwrap(reopenedContext.fetch(FetchDescriptor<LogEntry>()).first)
+        XCTAssertEqual(reopened.servingSelection?.name, "large egg")
+        XCTAssertEqual(reopened.servingSelection?.quantity, 1.5)
+        XCTAssertEqual(reopened.timestamp, date)
+        XCTAssertEqual(reopened.food?.servingSizes.count, 2)
+
+        // A later food correction does not rewrite the existing snapshot.
+        reopened.food?.setPer100g(.calories, 500)
+        let editRepository = SwiftDataLogRepository(context: reopenedContext)
+        try editRepository.updateEntryWithServing(reopened,
+            selection: ServingSelection(name: "small egg", gramsPerUnit: 25, quantity: 2),
+            mealSlot: .lunch, timestamp: date.addingTimeInterval(3600), note: "Edited")
+        XCTAssertEqual(reopened.grams, 50, accuracy: 0.001)
+        XCTAssertEqual(reopened.calories, 77.5, accuracy: 0.001)
+        XCTAssertEqual(reopened.servingSelection?.name, "small egg")
+        XCTAssertEqual(reopened.servingSelection?.quantity, 2)
+        XCTAssertEqual(reopened.mealSlot, .lunch)
+        XCTAssertEqual(reopened.note, "Edited")
+    }
+
     // MARK: - LogEntry snapshot
 
     func testLogEntrySnapshotRoundTrip() {

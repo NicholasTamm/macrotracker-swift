@@ -36,6 +36,11 @@ public protocol LogRepository {
         timestamp: Date,
         note: String?
     ) throws
+    @discardableResult
+    func logFoodWithServing(_ food: FoodItem, selection: ServingSelection,
+                            mealSlot: MealSlot, timestamp: Date, note: String?) throws -> LogEntry
+    func updateEntryWithServing(_ entry: LogEntry, selection: ServingSelection,
+                                mealSlot: MealSlot, timestamp: Date, note: String?) throws
     func deleteEntry(_ entry: LogEntry) throws
 
     // MARK: Reads
@@ -65,6 +70,22 @@ public protocol LogRepository {
 
 @MainActor
 extension LogRepository {
+    @discardableResult
+    public func logFoodWithServing(_ food: FoodItem, selection: ServingSelection,
+                                   mealSlot: MealSlot, timestamp: Date, note: String?) throws -> LogEntry {
+        let entry = try logFood(food, grams: selection.totalGrams, mealSlot: mealSlot,
+                                timestamp: timestamp, note: note, source: .manualSearch)
+        entry.setServingSelection(selection)
+        return entry
+    }
+
+    public func updateEntryWithServing(_ entry: LogEntry, selection: ServingSelection,
+                                       mealSlot: MealSlot, timestamp: Date, note: String?) throws {
+        try updateEntry(entry, grams: selection.totalGrams, mealSlot: mealSlot,
+                        timestamp: timestamp, note: note)
+        entry.setServingSelection(selection)
+    }
+
     @discardableResult
     func logFood(
         _ food: FoodItem,
@@ -127,7 +148,15 @@ public final class SwiftDataLogRepository: LogRepository {
         note: String? = nil,
         source: EntrySource = .manualSearch
     ) throws -> LogEntry {
-        guard grams > 0 else { throw MFDataError.invalidInput("Amount must be positive.") }
+        let entry = try makeFoodEntry(food, grams: grams, mealSlot: mealSlot,
+                                      timestamp: timestamp, note: note, source: source)
+        try context.save()
+        return entry
+    }
+
+    private func makeFoodEntry(_ food: FoodItem, grams: Double, mealSlot: MealSlot,
+                               timestamp: Date, note: String?, source: EntrySource) throws -> LogEntry {
+        guard grams.isFinite, grams > 0 else { throw MFDataError.invalidInput("Amount must be positive.") }
         let entry = LogEntry(
             timestamp: timestamp,
             dayStart: MFDates.startOfDay(timestamp),
@@ -140,7 +169,6 @@ public final class SwiftDataLogRepository: LogRepository {
             note: note
         )
         context.insert(entry)
-        try context.save()
         return entry
     }
 
@@ -183,15 +211,57 @@ public final class SwiftDataLogRepository: LogRepository {
         timestamp: Date,
         note: String?
     ) throws {
-        guard grams >= 0 else { throw MFDataError.invalidInput("Amount can't be negative.") }
+        try applyEntryUpdate(entry, grams: grams, mealSlot: mealSlot, timestamp: timestamp, note: note)
+        try context.save()
+    }
+
+    private func applyEntryUpdate(_ entry: LogEntry, grams: Double, mealSlot: MealSlot,
+                                  timestamp: Date, note: String?) throws {
+        guard grams.isFinite, grams >= 0 else { throw MFDataError.invalidInput("Amount can't be negative.") }
+        let previousGrams = entry.grams
+        // Scale the original snapshot, so editing a portion after a food's
+        // nutrition facts change does not silently rewrite historical data.
+        let scaledSnapshot: [NutrientKey: Double]? = previousGrams > 0
+            ? Dictionary(uniqueKeysWithValues: NutrientKey.allCases.map {
+                ($0, entry.snapshot($0) * grams / previousGrams)
+            }) : nil
         entry.grams = grams
         entry.mealSlot = mealSlot
         entry.timestamp = timestamp
         entry.dayStart = MFDates.startOfDay(timestamp)
         entry.note = note
-        if let food = entry.food {
+        if let scaledSnapshot {
+            entry.applySnapshot(scaledSnapshot)
+        } else if let food = entry.food {
             entry.applySnapshot(food.scaledNutrients(grams: grams))
         }
+    }
+
+    @discardableResult
+    public func logFoodWithServing(_ food: FoodItem, selection: ServingSelection,
+                                   mealSlot: MealSlot, timestamp: Date, note: String?) throws -> LogEntry {
+        guard selection.quantity.isFinite, selection.quantity > 0, selection.quantity <= 1000,
+              selection.gramsPerUnit.isFinite, selection.gramsPerUnit > 0,
+              selection.totalGrams.isFinite, selection.totalGrams <= 100_000 else {
+            throw MFDataError.invalidInput("Enter a valid serving amount.")
+        }
+        let entry = try makeFoodEntry(food, grams: selection.totalGrams, mealSlot: mealSlot,
+                                      timestamp: timestamp, note: note, source: .manualSearch)
+        entry.setServingSelection(selection)
+        try context.save()
+        return entry
+    }
+
+    public func updateEntryWithServing(_ entry: LogEntry, selection: ServingSelection,
+                                       mealSlot: MealSlot, timestamp: Date, note: String?) throws {
+        guard selection.quantity.isFinite, selection.quantity > 0, selection.quantity <= 1000,
+              selection.gramsPerUnit.isFinite, selection.gramsPerUnit > 0,
+              selection.totalGrams.isFinite, selection.totalGrams <= 100_000 else {
+            throw MFDataError.invalidInput("Enter a valid serving amount.")
+        }
+        try applyEntryUpdate(entry, grams: selection.totalGrams, mealSlot: mealSlot,
+                             timestamp: timestamp, note: note)
+        entry.setServingSelection(selection)
         try context.save()
     }
 

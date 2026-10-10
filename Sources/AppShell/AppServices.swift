@@ -88,6 +88,13 @@ public final class AppServices {
                 assertionFailure("Could not seed food paste UI test: \(error)")
             }
         }
+        if ProcessInfo.processInfo.arguments.contains("-issue3ServingFixture") {
+            do {
+                try seedServingFixture(in: store)
+            } catch {
+                assertionFailure("Could not seed serving UI test: \(error)")
+            }
+        }
         #endif
         let services = AppServices(store: store)
         services.launch()
@@ -152,6 +159,59 @@ public final class AppServices {
                 note: nil,
                 source: .manualSearch
             )
+        }
+    }
+
+    private static func seedServingFixture(in store: DataStore) throws {
+        if ProcessInfo.processInfo.arguments.contains("-issue3ResetLog") {
+            for entry in try store.logs.entries(forDay: MFDates.startOfDay(Date()))
+                where entry.foodName.hasPrefix("QA3") {
+                try store.logs.deleteEntry(entry)
+            }
+        }
+        if ProcessInfo.processInfo.arguments.contains("-issue3LegacyFixture") {
+            let legacy: FoodItem
+            if let existing = try store.foods.customFoods().first(where: { $0.name == "QA3 Legacy" }) {
+                legacy = existing
+            } else {
+                legacy = try store.foods.saveFood(
+                    name: "QA3 Legacy", brand: "", barcode: nil,
+                    servingDescription: "bowl", servingSizeGrams: 100,
+                    nutrientsPer100g: [.calories: 120, .protein: 10, .fat: 4, .carbs: 18], source: .custom
+                )
+            }
+            if !(try store.logs.entries(forDay: MFDates.startOfDay(Date())))
+                .contains(where: { $0.foodName == "QA3 Legacy" }) {
+                try store.logs.logFood(legacy, grams: 37.555, mealSlot: .breakfast,
+                                       timestamp: Date(), note: "Legacy precision fixture", source: .manualSearch)
+            }
+        }
+        let food: FoodItem
+        if let existing = try store.foods.customFoods().first(where: { $0.name == "QA3 Oats" }) {
+            food = existing
+        } else {
+            food = try store.foods.saveFood(
+                name: "QA3 Oats", brand: "", barcode: nil,
+                servingDescription: "bowl", servingSizeGrams: 100,
+                nutrientsPer100g: [.calories: 120, .protein: 10, .fat: 4, .carbs: 18],
+                source: .custom
+            )
+            food.servingSizes = [
+                ServingSize(name: "bowl", grams: 100),
+                ServingSize(name: "scoop", grams: 25),
+            ]
+            try store.foods.updateFood(food)
+        }
+        let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: Date()) ?? Date()
+        if !(try store.logs.entries(forDay: MFDates.startOfDay(yesterday))).contains(where: { $0.foodName == "QA3 Oats" }) {
+            try store.logs.logFood(food, grams: 100, mealSlot: .breakfast,
+                                   timestamp: yesterday, note: "Recents fixture", source: .manualSearch)
+        }
+        if let egg = try store.foods.searchFoods(query: "Egg", limit: 20)
+            .first(where: { $0.source == .seedDatabase }),
+           !(try store.logs.entries(forDay: MFDates.startOfDay(yesterday))).contains(where: { $0.food?.id == egg.id }) {
+            try store.logs.logFood(egg, grams: egg.servingSizeGrams, mealSlot: .breakfast,
+                                   timestamp: yesterday, note: "Recents fixture", source: .manualSearch)
         }
     }
     #endif
