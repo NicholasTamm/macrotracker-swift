@@ -148,9 +148,13 @@ public final class FoodLogViewModel {
     // MARK: Logging
 
     @discardableResult
-    public func logFood(_ food: FoodItem, grams: Double, mealSlot: MealSlot, timestamp: Date, note: String?) -> Bool {
+    public func logFood(_ food: FoodItem, grams: Double, mealSlot: MealSlot, timestamp: Date, note: String?, selection: ServingSelection? = nil) -> Bool {
         do {
-            try logs.logFood(food, grams: grams, mealSlot: mealSlot, timestamp: timestamp, note: note, source: .manualSearch)
+            if let selection {
+                try logs.logFoodWithServing(food, selection: selection, mealSlot: mealSlot, timestamp: timestamp, note: note)
+            } else {
+                try logs.logFood(food, grams: grams, mealSlot: mealSlot, timestamp: timestamp, note: note, source: .manualSearch)
+            }
             reload()
             noteFoodLogged(at: timestamp)
             return true
@@ -182,9 +186,13 @@ public final class FoodLogViewModel {
         }
     }
 
-    public func updateEntry(_ entry: LogEntry, grams: Double, mealSlot: MealSlot, timestamp: Date, note: String?) {
+    public func updateEntry(_ entry: LogEntry, grams: Double, mealSlot: MealSlot, timestamp: Date, note: String?, selection: ServingSelection? = nil) {
         do {
-            try logs.updateEntry(entry, grams: grams, mealSlot: mealSlot, timestamp: timestamp, note: note)
+            if let selection {
+                try logs.updateEntryWithServing(entry, selection: selection, mealSlot: mealSlot, timestamp: timestamp, note: note)
+            } else {
+                try logs.updateEntry(entry, grams: grams, mealSlot: mealSlot, timestamp: timestamp, note: note)
+            }
             reload()
         } catch {
             lastError = error.localizedDescription

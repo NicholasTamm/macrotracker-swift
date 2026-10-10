@@ -58,6 +58,9 @@ public final class LogEntry {
     /// Denormalized food name so deleted foods still render.
     public var foodName: String
     public var grams: Double
+    public var servingSizeName: String?
+    public var servingSizeGrams: Double?
+    public var servingQuantity: Double?
     public var note: String?
 
     // MARK: Nutrient snapshot — absolute amounts for `grams` at log time
@@ -116,6 +119,9 @@ public final class LogEntry {
         self.food = food
         self.foodName = foodName
         self.grams = grams
+        self.servingSizeName = nil
+        self.servingSizeGrams = nil
+        self.servingQuantity = nil
         self.note = note
         applySnapshot(nutrients)
     }
@@ -128,6 +134,18 @@ public final class LogEntry {
     public var entrySource: EntrySource {
         get { EntrySource(rawValue: sourceRaw) ?? .manualSearch }
         set { sourceRaw = newValue.rawValue }
+    }
+
+    public var servingSelection: ServingSelection? {
+        guard let servingSizeName, let servingSizeGrams, let servingQuantity,
+              servingSizeGrams > 0, servingQuantity > 0 else { return nil }
+        return ServingSelection(name: servingSizeName, gramsPerUnit: servingSizeGrams, quantity: servingQuantity)
+    }
+
+    public func setServingSelection(_ selection: ServingSelection?) {
+        servingSizeName = selection?.name
+        servingSizeGrams = selection?.gramsPerUnit
+        servingQuantity = selection?.quantity
     }
 
     /// Absolute snapshot value for a nutrient key.

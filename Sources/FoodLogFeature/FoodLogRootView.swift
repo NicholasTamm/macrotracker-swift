@@ -545,8 +545,8 @@ public struct FoodLogRootView: View {
                 food: food,
                 initialGrams: grams,
                 defaultDate: dateForHour(hour),
-                onLog: { grams, mealSlot, date, note in
-                    let ok = viewModel.logFood(food, grams: grams, mealSlot: mealSlot, timestamp: date, note: note)
+                onLog: { selection, mealSlot, date, note in
+                    let ok = viewModel.logFood(food, grams: selection.totalGrams, mealSlot: mealSlot, timestamp: date, note: note, selection: selection)
                     if ok {
                         if !Calendar.current.isDate(date, inSameDayAs: viewModel.selectedDay) {
                             viewModel.selectDay(date)
@@ -564,8 +564,9 @@ public struct FoodLogRootView: View {
         case .editEntry(let entry):
             FoodDetailEditorView(
                 entry: entry,
-                onSave: { grams, mealSlot, date, note in
-                    viewModel.updateEntry(entry, grams: grams, mealSlot: mealSlot, timestamp: date, note: note)
+                onSave: { selection, mealSlot, date, note in
+                    viewModel.updateEntry(entry, grams: selection?.totalGrams ?? entry.grams,
+                                          mealSlot: mealSlot, timestamp: date, note: note, selection: selection)
                     editorRequest = nil
                 },
                 onDelete: {

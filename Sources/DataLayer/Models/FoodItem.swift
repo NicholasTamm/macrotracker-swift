@@ -36,6 +36,8 @@ public final class FoodItem {
     public var servingDescription: String
     /// Grams per serving; nutrient math always goes through per-100-g values.
     public var servingSizeGrams: Double
+    /// Optional additive catalog. Nil records use the legacy serving fields.
+    public var servingSizesJSON: String?
     /// Open Food Facts product code, when imported from OFF.
     public var openFoodFactsCode: String?
     /// Soft-delete flag for user foods (keeps log-entry snapshots intact).
@@ -107,6 +109,7 @@ public final class FoodItem {
         self.barcode = barcode
         self.servingDescription = servingDescription
         self.servingSizeGrams = servingSizeGrams
+        self.servingSizesJSON = nil
         self.openFoodFactsCode = openFoodFactsCode
         self.isArchived = false
         self.createdAt = Date()
@@ -119,6 +122,35 @@ public final class FoodItem {
     }
 
     public var isRecipe: Bool { !recipeIngredients.isEmpty }
+
+    public var servingSizes: [ServingSize] {
+        get {
+            if let servingSizesJSON,
+               let data = servingSizesJSON.data(using: .utf8),
+               let sizes = try? JSONDecoder().decode([ServingSize].self, from: data),
+               !sizes.isEmpty {
+                return sizes
+            }
+            return [ServingSize(
+                id: "legacy",
+                name: servingDescription.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                    ? "Serving" : servingDescription,
+                grams: servingSizeGrams.isFinite && servingSizeGrams > 0 ? servingSizeGrams : 100
+            )]
+        }
+        set {
+            let valid = newValue.filter {
+                !$0.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                    && $0.grams.isFinite && $0.grams > 0
+            }
+            guard let first = valid.first,
+                  let data = try? JSONEncoder().encode(valid) else { return }
+            servingSizesJSON = String(data: data, encoding: .utf8)
+            // Existing consumers use the first size as the nutrition basis.
+            servingDescription = first.name
+            servingSizeGrams = first.grams
+        }
+    }
 
     /// Display name including brand, e.g. "Greek Yogurt — Plain Brand".
     public var displayName: String {

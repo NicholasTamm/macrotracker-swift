@@ -7,6 +7,11 @@ import DataLayer
 /// Create or edit a custom food: name, serving, and nutrition facts.
 /// Nutrients are entered per serving and stored per 100 g.
 public struct CustomFoodEditorView: View {
+    private struct SizeDraft: Identifiable {
+        var id: String
+        var name: String
+        var grams: String
+    }
     private let existingFood: FoodItem?
     private let foods: any FoodRepository
     private let onDone: (FoodItem) -> Void
@@ -14,8 +19,8 @@ public struct CustomFoodEditorView: View {
     @State private var name: String
     @State private var brand: String
     @State private var barcode: String
-    @State private var servingDescription: String
-    @State private var servingGrams: String
+    @State private var servingSizes: [SizeDraft]
+    @State private var nutritionBasisGrams: Double
     @State private var calories: String
     @State private var protein: String
     @State private var fat: String
@@ -39,8 +44,10 @@ public struct CustomFoodEditorView: View {
         _name = State(initialValue: food?.name ?? "")
         _brand = State(initialValue: food?.brand ?? "")
         _barcode = State(initialValue: food?.barcode ?? "")
-        _servingDescription = State(initialValue: food?.servingDescription ?? "")
-        _servingGrams = State(initialValue: food.map { MFFormat.grams($0.servingSizeGrams) } ?? "100")
+        _servingSizes = State(initialValue: (food?.servingSizes ?? [ServingSize(name: "Serving", grams: 100)]).map {
+            SizeDraft(id: $0.id, name: $0.name, grams: String($0.grams))
+        })
+        _nutritionBasisGrams = State(initialValue: food?.servingSizes.first?.grams ?? 100)
         _calories = State(initialValue: Self.text(serving[.calories]))
         _protein = State(initialValue: Self.text(serving[.protein]))
         _fat = State(initialValue: Self.text(serving[.fat]))
@@ -57,7 +64,12 @@ public struct CustomFoodEditorView: View {
 
     private var isValid: Bool {
         !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            && (Double(servingGrams) ?? 0) > 0
+            && !servingSizes.isEmpty
+            && servingSizes.allSatisfy {
+                !$0.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                    && (Double($0.grams).map { $0.isFinite && $0 > 0 && $0 <= 100_000 } ?? false)
+            }
+            && Set(servingSizes.map { $0.name.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() }).count == servingSizes.count
     }
 
     public var body: some View {
@@ -70,23 +82,44 @@ public struct CustomFoodEditorView: View {
                         .keyboardType(.numberPad)
                 }
 
-                Section("Serving") {
-                    MFTextField("Serving description", placeholder: "e.g. 1 bowl", text: $servingDescription)
-                    HStack {
-                        Text("Serving weight")
-                            .font(MFFont.body)
-                            .foregroundColor(MFColor.textPrimary)
-                        Spacer()
-                        TextField("100", text: $servingGrams)
-                            .keyboardType(.decimalPad)
-                            .multilineTextAlignment(.trailing)
-                            .font(MFFont.bodyBold)
-                            .monospacedDigit()
-                            .frame(width: 80)
-                            .accessibilityLabel("Serving weight in grams")
-                        Text("g")
-                            .font(MFFont.caption)
-                            .foregroundColor(MFColor.textSecondary)
+                Section("Serving sizes") {
+                    ForEach($servingSizes) { $size in
+                        HStack {
+                            TextField("Name, e.g. 1 bowl", text: $size.name)
+                                .accessibilityLabel("Serving size name")
+                            TextField("Grams", text: Binding(
+                                get: { size.grams },
+                                set: { value in
+                                    let isBasis = servingSizes.first?.id == size.id
+                                    size.grams = value
+                                    if isBasis { rescaleNutritionBasis(to: value) }
+                                }
+                            ))
+                                .keyboardType(.decimalPad)
+                                .multilineTextAlignment(.trailing)
+                                .frame(width: 70)
+                                .accessibilityLabel("Serving size weight in grams")
+                            Text("g").foregroundColor(MFColor.textSecondary)
+                            if servingSizes.count > 1 {
+                                Button {
+                                    let remaining = servingSizes.filter { $0.id != size.id }
+                                    if servingSizes.first?.id == size.id, let next = remaining.first {
+                                        rescaleNutritionBasis(to: next.grams)
+                                    }
+                                    servingSizes = remaining
+                                } label: { Image(systemName: "minus.circle.fill") }
+                                    .accessibilityLabel("Remove \(size.name) serving size")
+                            }
+                        }
+                    }
+                    Button("Add serving size") {
+                        servingSizes.append(SizeDraft(id: UUID().uuidString, name: "", grams: ""))
+                    }
+                    Text("Nutrition below is for one unit of the first size. Other sizes use the same nutrition per gram.")
+                        .font(MFFont.caption).foregroundColor(MFColor.textSecondary)
+                    if !isValid {
+                        Text("Enter unique names and positive weights for all serving sizes.")
+                            .font(MFFont.caption).foregroundColor(.red)
                     }
                 }
 
@@ -151,9 +184,30 @@ public struct CustomFoodEditorView: View {
         }
     }
 
+    private func rescaleNutritionBasis(to raw: String) {
+        guard let grams = Double(raw),
+              grams.isFinite, grams > 0, grams <= 100_000 else { return }
+        let factor = grams / nutritionBasisGrams
+        func scaled(_ text: String) -> String {
+            guard let value = Double(text), value.isFinite else { return text }
+            return String(value * factor)
+        }
+        calories = scaled(calories)
+        protein = scaled(protein)
+        fat = scaled(fat)
+        carbs = scaled(carbs)
+        fiber = scaled(fiber)
+        sugar = scaled(sugar)
+        sodium = scaled(sodium)
+        nutritionBasisGrams = grams
+    }
+
     private func save() {
-        let grams = Double(servingGrams) ?? 0
-        guard grams > 0 else { return }
+        guard isValid else { return }
+        let sizes = servingSizes.map {
+            ServingSize(id: $0.id, name: $0.name.trimmingCharacters(in: .whitespacesAndNewlines), grams: Double($0.grams)!)
+        }
+        let grams = sizes[0].grams
         // Per-serving → per-100-g.
         let factor = 100.0 / grams
         func val(_ text: String) -> Double { max(Double(text) ?? 0, 0) }
@@ -171,8 +225,7 @@ public struct CustomFoodEditorView: View {
                 existing.name = name.trimmingCharacters(in: .whitespacesAndNewlines)
                 existing.brand = brand
                 existing.barcode = barcode.isEmpty ? nil : barcode
-                existing.servingDescription = servingDescription
-                existing.servingSizeGrams = grams
+                existing.servingSizes = sizes
                 for (key, value) in nutrients { existing.setPer100g(key, value) }
                 try foods.updateFood(existing)
                 onDone(existing)
@@ -181,11 +234,13 @@ public struct CustomFoodEditorView: View {
                     name: name,
                     brand: brand,
                     barcode: barcode.isEmpty ? nil : barcode,
-                    servingDescription: servingDescription,
+                    servingDescription: sizes[0].name,
                     servingSizeGrams: grams,
                     nutrientsPer100g: nutrients,
                     source: .custom
                 )
+                food.servingSizes = sizes
+                try foods.updateFood(food)
                 onDone(food)
             }
         } catch {
